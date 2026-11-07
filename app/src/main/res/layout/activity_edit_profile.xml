@@ -267,7 +267,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="RM 267.63"
+                            android:text="RM 0.00"
                             android:textAppearance="@style/TextAppearance.App.Hero"
                             android:textColor="@color/brand_blue" />
 
@@ -276,7 +276,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="of RM 400.00 budget"
+                            android:text="of RM 0.00 budget"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -290,7 +290,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:max="100"
-                            android:progress="66" />
+                            android:progress="0" />
                     </LinearLayout>
 
                     <TextView

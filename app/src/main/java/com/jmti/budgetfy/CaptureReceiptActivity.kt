@@ -3,7 +3,6 @@ package com.jmti.budgetfy
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
@@ -12,6 +11,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -20,14 +20,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.jmti.budgetfy.adapters.ReceiptItemAdapter
 import com.jmti.budgetfy.models.LearnedKeyword
 import com.jmti.budgetfy.models.Receipt
 import com.jmti.budgetfy.models.ReceiptItem
 import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.utils.CategorizationEngine
+import com.jmti.budgetfy.utils.GeminiReceiptExtractor
+import com.jmti.budgetfy.utils.ImageLoader
 import com.jmti.budgetfy.utils.OCRHelper
 import com.jmti.budgetfy.utils.ReceiptParser
+import com.jmti.budgetfy.utils.ReceiptValidator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,6 +60,20 @@ class CaptureReceiptActivity : AppCompatActivity() {
     private val ocrHelper = OCRHelper()
     private val receiptParser = ReceiptParser()
     private val categorizationEngine = CategorizationEngine()
+    private val geminiExtractor = GeminiReceiptExtractor()
+
+    // Same scanner Receiptly uses: finds the receipt edges, crops, flattens
+    // perspective and cleans shadows before OCR ever sees the image.
+    private val documentScanner by lazy {
+        GmsDocumentScanning.getClient(
+            GmsDocumentScannerOptions.Builder()
+                .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
+                .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG)
+                .setGalleryImportAllowed(true)
+                .setPageLimit(1)
+                .build()
+        )
+    }
 
     private var capturedBitmap: Bitmap? = null
     private val extractedItems = mutableListOf<ReceiptItem>()
@@ -71,39 +91,44 @@ class CaptureReceiptActivity : AppCompatActivity() {
         else Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show()
     }
 
+    private val scannerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val scan = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
+            val pageUri = scan?.pages?.firstOrNull()?.imageUri
+            if (pageUri != null) loadReceiptImage(pageUri, "Receipt scanned! Tap Process.")
+        }
+    }
+
+    // Fallback when the scanner is unavailable (no Google Play services).
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) {
-            try {
-                photoUri?.let { uri ->
-                    val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(uri))
-                    capturedBitmap = bitmap
-                    imageView.setImageBitmap(bitmap)
-                    processButton.isEnabled = true
-                    savedImagePath = saveImageToInternal(bitmap)
-                    Toast.makeText(this, "Photo captured! Tap Process.", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
+        if (success) photoUri?.let { loadReceiptImage(it, "Photo captured! Tap Process.") }
     }
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            try {
-                val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(it))
-                capturedBitmap = bitmap
-                imageView.setImageBitmap(bitmap)
-                processButton.isEnabled = true
-                savedImagePath = saveImageToInternal(bitmap)
-                Toast.makeText(this, "Image loaded! Tap Process.", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        uri?.let { loadReceiptImage(it, "Image loaded! Tap Process.") }
+    }
+
+    private fun loadReceiptImage(uri: Uri, message: String) {
+        try {
+            // EXIF-aware: phone photos otherwise reach OCR rotated sideways.
+            val bitmap = ImageLoader.load(this, uri)
+            if (bitmap == null) {
+                Toast.makeText(this, "Could not read that image", Toast.LENGTH_SHORT).show()
+                return
             }
+            capturedBitmap = bitmap
+            imageView.setImageBitmap(bitmap)
+            processButton.isEnabled = true
+            savedImagePath = saveImageToInternal(bitmap)
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -177,7 +202,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        captureButton.setOnClickListener { checkCameraPermission() }
+        captureButton.setOnClickListener { startDocumentScanner() }
         galleryButton.setOnClickListener { galleryLauncher.launch("image/*") }
         processButton.setOnClickListener { processReceipt() }
         saveButton.setOnClickListener { saveReceipt() }
@@ -260,6 +285,17 @@ class CaptureReceiptActivity : AppCompatActivity() {
         }
     }
 
+    private fun startDocumentScanner() {
+        documentScanner.getStartScanIntent(this)
+            .addOnSuccessListener { intentSender ->
+                scannerLauncher.launch(IntentSenderRequest.Builder(intentSender).build())
+            }
+            .addOnFailureListener { e ->
+                Log.w("CAPTURE", "Document scanner unavailable, using camera: ${e.message}")
+                checkCameraPermission()
+            }
+    }
+
     private fun checkCameraPermission() {
         when {
             ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
@@ -296,21 +332,60 @@ class CaptureReceiptActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val text = ocrHelper.extractTextFromImage(bitmap)
-                val detectedStore = receiptParser.detectStoreName(text)
+                val ocr = ocrHelper.recognize(bitmap)
+                val categories = categorizationEngine.getCategories()
 
                 // ✅ Reload avoid patterns from Firestore (in case user deleted items in other sessions)
                 val freshAvoids = firebaseRepo.getAvoidKeywords(threshold = 2L)
                 avoidPatterns = freshAvoids
                 Log.d("CAPTURE", "Applying ${freshAvoids.size} avoid patterns")
 
-                val result = receiptParser.parseReceipt(text, freshAvoids)
+                // 1) Gemini reads the image (OCR text as a hint).
+                // 2) If there's no key, no network or no items, fall back to the on-device parser.
+                val ai = if (geminiExtractor.isConfigured) {
+                    geminiExtractor.extract(bitmap, ocr.layoutText, categories)
+                } else null
 
-                val correctedItems = result.items.map { item ->
-                    val fixedName = categorizationEngine.applyLearnedName(item.name, learnedKeywords)
-                    val fixedCategory = categorizationEngine.categorizeItem(fixedName, learnedKeywords)
-                    item.copy(name = fixedName, category = fixedCategory)
+                val usedAi = ai != null && ai.items.isNotEmpty()
+                val rawItems: List<ReceiptItem>
+                val detectedStore: String
+                val receiptTotal: Double?
+                val extras: Double
+                if (usedAi) {
+                    rawItems = ai!!.items.map {
+                        ReceiptItem(
+                            name = it.name,
+                            quantity = it.quantity.toString(),
+                            price = it.lineTotal,
+                            category = it.category ?: "Other"
+                        )
+                    }
+                    detectedStore = ai.storeName ?: receiptParser.detectStoreName(ocr.text)
+                    receiptTotal = ai.total
+                    extras = ai.extras
+                } else {
+                    val result = receiptParser.parseReceipt(ocr.text, freshAvoids)
+                    rawItems = result.items
+                    detectedStore = receiptParser.detectStoreName(ocr.text)
+                    receiptTotal = result.receiptTotal.takeIf { it > 0.0 }
+                    extras = 0.0
                 }
+
+                // Learned corrections always win; Gemini's category fills in
+                // where the keyword rules only know "Other".
+                val correctedItems = rawItems.map { item ->
+                    val fixedName = categorizationEngine.applyLearnedName(item.name, learnedKeywords)
+                    val ruleCategory = categorizationEngine.categorizeItem(fixedName, learnedKeywords)
+                    val category = if (ruleCategory == "Other" && item.category in categories) {
+                        item.category
+                    } else ruleCategory
+                    item.copy(name = fixedName, category = category)
+                }
+
+                val check = ReceiptValidator.check(correctedItems, receiptTotal, extras)
+                val aiError = if (geminiExtractor.isConfigured && !usedAi) {
+                    geminiExtractor.lastError ?: "no items found"
+                } else null
 
                 withContext(Dispatchers.Main) {
                     extractedItems.clear()
@@ -325,14 +400,27 @@ class CaptureReceiptActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     processButton.isEnabled = true
 
-                    if (extractedItems.isEmpty()) {
-                        Toast.makeText(this@CaptureReceiptActivity,
-                            "No items found. Tap + ADD ITEM.", Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(this@CaptureReceiptActivity,
-                            "Found ${extractedItems.size} items. Tap any to edit or delete.",
-                            Toast.LENGTH_LONG).show()
+                    if (aiError != null) {
+                        Log.w("CAPTURE", "AI reading failed: $aiError")
                     }
+
+                    val message = when {
+                        extractedItems.isEmpty() ->
+                            "No items found. Tap + ADD ITEM."
+                        check.matches == false ->
+                            "Found ${extractedItems.size} items, but they add up to " +
+                                    "RM ${"%.2f".format(check.itemsSum)} while the receipt total is " +
+                                    "RM ${"%.2f".format(check.receiptTotal)}. Please check the items."
+                        else ->
+                            "Found ${extractedItems.size} items. Tap any to edit or delete."
+                    }
+                    val source = when {
+                        usedAi -> ""
+                        aiError != null -> "\n(AI unavailable: $aiError. Used on-device reading.)"
+                        else -> ""
+                    }
+                    Toast.makeText(this@CaptureReceiptActivity, message + source,
+                        Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {

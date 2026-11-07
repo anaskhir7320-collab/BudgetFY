@@ -1,3 +1,13 @@
+import java.util.Properties
+
+// Secrets live in local.properties (git-ignored), never in source:
+//   GEMINI_API_KEY=your-key-from-aistudio.google.com
+//   GEMINI_MODEL=gemini-2.5-flash   (optional)
+val localProps = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -16,6 +26,19 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String", "GEMINI_API_KEY",
+            "\"${localProps.getProperty("GEMINI_API_KEY", "")}\""
+        )
+        buildConfigField(
+            "String", "GEMINI_MODEL",
+            "\"${localProps.getProperty("GEMINI_MODEL", "gemini-2.5-flash")}\""
+        )
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -53,6 +76,12 @@ dependencies {
 
     // ML Kit OCR
     implementation("com.google.mlkit:text-recognition:16.0.0")
+
+    // ML Kit Document Scanner: auto edge detection, crop, deskew, shadow cleanup
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")
+
+    // Reads photo rotation so images reach OCR the right way up
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
 
     // CameraX
     implementation("androidx.camera:camera-core:1.3.0")

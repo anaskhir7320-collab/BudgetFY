@@ -1,14 +1,12 @@
 package com.jmti.budgetfy.utils
 
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.tasks.await
+import kotlin.math.abs
 
 class OCRHelper {
 
@@ -16,7 +14,16 @@ class OCRHelper {
         TextRecognizerOptions.DEFAULT_OPTIONS
     )
 
-    suspend fun extractTextFromImage(bitmap: Bitmap): String {
+    data class OcrOutput(
+        /** Block-by-block text, the format ReceiptParser expects. */
+        val text: String,
+        /** Lines regrouped into visual rows ("ITEM NAME   1   12.90"), for Gemini. */
+        val layoutText: String
+    )
+
+    suspend fun extractTextFromImage(bitmap: Bitmap): String = recognize(bitmap).text
+
+    suspend fun recognize(bitmap: Bitmap): OcrOutput {
         return try {
             val processed = preprocess(bitmap)
             val image = InputImage.fromBitmap(processed, 0)
@@ -30,11 +37,44 @@ class OCRHelper {
             }
 
             val corrected = correctCommonOCRErrors(sb.toString())
+            val layout = correctCommonOCRErrors(buildRows(result))
             android.util.Log.d("OCRTEST", corrected)
-            corrected
+            android.util.Log.d("OCRTEST", "ROWS:\n$layout")
+            OcrOutput(corrected, layout)
         } catch (e: Exception) {
             android.util.Log.e("OCRTEST", "OCR error: ${e.message}")
-            ""
+            OcrOutput("", "")
+        }
+    }
+
+    /**
+     * ML Kit groups text into blocks, so on a receipt the item names and the
+     * price column come out as separate lists. Regrouping lines by vertical
+     * position puts each item back on the same row as its price.
+     */
+    private fun buildRows(result: Text): String {
+        val lines = result.textBlocks.flatMap { it.lines }.filter { it.boundingBox != null }
+        if (lines.isEmpty()) return ""
+
+        val heights = lines.map { it.boundingBox!!.height() }.sorted()
+        val rowTolerance = heights[heights.size / 2] * 0.6f
+
+        val rows = mutableListOf<MutableList<Text.Line>>()
+        val rowCenters = mutableListOf<Float>()
+        for (line in lines.sortedBy { it.boundingBox!!.exactCenterY() }) {
+            val centerY = line.boundingBox!!.exactCenterY()
+            val last = rows.lastIndex
+            if (last >= 0 && abs(centerY - rowCenters[last]) <= rowTolerance) {
+                rows[last].add(line)
+                rowCenters[last] = rows[last].map { it.boundingBox!!.exactCenterY() }.average().toFloat()
+            } else {
+                rows.add(mutableListOf(line))
+                rowCenters.add(centerY)
+            }
+        }
+
+        return rows.joinToString("\n") { row ->
+            row.sortedBy { it.boundingBox!!.left }.joinToString("   ") { it.text }
         }
     }
 
@@ -53,8 +93,26 @@ class OCRHelper {
 
     private fun correctCommonOCRErrors(text: String): String {
         var corrected = text
+        // Whole-word only: a plain substring replace turned the correct "Muffin"
+        // into "MMuffin" (via "uffin") and "APPROVAL" into "APPROVALOVAL" (via "APPR").
+        for ((pattern, replacement) in wordReplacements) {
+            corrected = pattern.replace(corrected, replacement)
+        }
 
-        val replacements = listOf(
+        corrected = corrected.replace(Regex("\\bR[HN]\\s*(\\d)"), "RM $1")
+        corrected = corrected.replace(Regex("\\bRM[J1l]\\s*(\\d)"), "RM $1")
+
+        return corrected
+    }
+
+    private val wordReplacements: List<Pair<Regex, String>> by lazy {
+        replacements.map { (wrong, right) ->
+            Regex("(?<![A-Za-z0-9])" + Regex.escape(wrong) + "(?![A-Za-z0-9])") to
+                    Regex.escapeReplacement(right)
+        }
+    }
+
+    private val replacements = listOf(
             // ═══ FamilyMart / Mixue ═══
             "Chocoiate" to "Chocolate",
             "Choco1ate" to "Chocolate",
@@ -286,14 +344,4 @@ class OCRHelper {
             "solajatoterprie" to "Tana Bahagia Enterprise",
             "SSMe" to "SSM:"
         )
-
-        for ((wrong, right) in replacements) {
-            corrected = corrected.replace(wrong, right)
-        }
-
-        corrected = corrected.replace(Regex("\\bR[HN]\\s*(\\d)"), "RM $1")
-        corrected = corrected.replace(Regex("\\bRM[J1l]\\s*(\\d)"), "RM $1")
-
-        return corrected
-    }
 }

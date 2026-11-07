@@ -1,0 +1,43 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme -->
+    <style name="Theme.BudgetFY" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/brand_blue</item>
+        <item name="colorPrimaryVariant">@color/brand_blue_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/brand_blue_accent</item>
+        <item name="colorSecondaryVariant">@color/brand_blue</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/brand_blue_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Background -->
+        <item name="android:windowBackground">@color/page_bg</item>
+    </style>
+
+    <!-- Custom card corners -->
+    <style name="ShapeAppearanceOverlay.App.CornerSize20" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.App.CornerSize16" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.App.CornerSize12" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <!-- ✅ NEW: Circle shape for profile avatar -->
+    <style name="ShapeAppearanceOverlay.App.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>

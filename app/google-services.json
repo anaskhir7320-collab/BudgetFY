@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "924560243827",
+    "project_id": "budgetfy-b8ba2",
+    "storage_bucket": "budgetfy-b8ba2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:924560243827:android:92829e0cb8e36a4a313e06",
+        "android_client_info": {
+          "package_name": "com.jmti.budgetfy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr-zkUEOHmDs8zwgCWLZXEaBMBBS5RAdI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

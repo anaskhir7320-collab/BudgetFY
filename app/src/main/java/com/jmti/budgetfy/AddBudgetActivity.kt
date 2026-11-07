@@ -10,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.jmti.budgetfy.adapters.CategoryBudgetAdapter
 import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.utils.CategorizationEngine
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +30,9 @@ class AddBudgetActivity : AppCompatActivity() {
     private lateinit var maxHintTextView: TextView
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: android.widget.ProgressBar
+    private lateinit var budgetsRecyclerView: RecyclerView
+    private lateinit var budgetsEmptyText: TextView
+    private val budgetsAdapter = CategoryBudgetAdapter()
 
     private val firebaseRepo = FirebaseRepository()
     private val categorizationEngine = CategorizationEngine()
@@ -40,6 +46,23 @@ class AddBudgetActivity : AppCompatActivity() {
         initViews()
         setupListeners()
         loadExistingOverall()
+        loadCategoryBudgets()
+    }
+
+    /** Fills "Your category budgets" (spent vs limit for each category). */
+    private fun loadCategoryBudgets() {
+        val userId = firebaseRepo.getCurrentUser()?.uid ?: return
+        CoroutineScope(Dispatchers.IO).launch {
+            val budgets = try {
+                firebaseRepo.getBudgets(userId)
+            } catch (e: Exception) {
+                emptyList()
+            }
+            withContext(Dispatchers.Main) {
+                budgetsAdapter.updateData(budgets)
+                budgetsEmptyText.visibility = if (budgets.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
     }
 
     private fun initViews() {
@@ -51,6 +74,10 @@ class AddBudgetActivity : AppCompatActivity() {
         maxHintTextView = findViewById(R.id.maxHintTextView)
         toolbar = findViewById(R.id.toolbar)
         progressBar = findViewById(R.id.progressBar)
+        budgetsRecyclerView = findViewById(R.id.budgetsRecyclerView)
+        budgetsEmptyText = findViewById(R.id.budgetsEmptyText)
+        budgetsRecyclerView.layoutManager = LinearLayoutManager(this)
+        budgetsRecyclerView.adapter = budgetsAdapter
 
         toolbar.setNavigationOnClickListener { finish() }
 
@@ -166,11 +193,12 @@ class AddBudgetActivity : AppCompatActivity() {
                 if (success) {
                     Toast.makeText(
                         this@AddBudgetActivity,
-                        "✅ $category = RM ${String.format("%.2f", limit)}",
+                        "Saved: $category · RM ${String.format("%.2f", limit)}",
                         Toast.LENGTH_LONG
                     ).show()
                     limitEditText.setText("")
-                    categoryDropdown.setText("")
+                    categoryDropdown.setText("", false)
+                    loadCategoryBudgets()
                 } else {
                     Toast.makeText(this@AddBudgetActivity, "Failed to save", Toast.LENGTH_SHORT).show()
                 }

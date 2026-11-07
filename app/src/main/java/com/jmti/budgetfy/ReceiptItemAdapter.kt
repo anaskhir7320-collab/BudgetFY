@@ -39,7 +39,7 @@ class ReceiptItemAdapter(
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = items[position]
-        holder.bind(item)
+        holder.bind(item, isLast = position == items.lastIndex)
 
         holder.categoryBar.setOnClickListener {
             showCategoryDialog(holder.itemView.context, item)
@@ -143,25 +143,31 @@ class ReceiptItemAdapter(
         val itemPriceView: TextView = itemView.findViewById(R.id.itemPriceTextView)
 
         private val categoryText: TextView = itemView.findViewById(R.id.itemCategoryTextView)
+        private val categoryChevron: android.widget.ImageView = itemView.findViewById(R.id.categoryChevron)
         private val quantityText: TextView = itemView.findViewById(R.id.itemQuantityTextView)
+        private val rowDivider: View = itemView.findViewById(R.id.rowDivider)
 
-        fun bind(item: ReceiptItem) {
+        fun bind(item: ReceiptItem, isLast: Boolean) {
             itemNameView.text = item.name
             itemPriceView.text = "RM ${String.format("%.2f", item.price)}"
             quantityText.text = "×${item.quantity}"
-            categoryText.text = item.category
 
-            if (item.isManuallyCorrected) {
-                categoryBar.setBackgroundColor(
-                    android.graphics.Color.parseColor("#C8E6C9")
-                )
-                categoryText.setTextColor(android.graphics.Color.parseColor("#2E7D32"))
+            // Chip: blue = read automatically, green with ✓ = you corrected it
+            val (chipBg, chipText) = if (item.isManuallyCorrected) {
+                android.graphics.Color.parseColor("#E8F6EE") to android.graphics.Color.parseColor("#1E7B46")
             } else {
-                categoryBar.setBackgroundColor(
-                    android.graphics.Color.parseColor("#F3E5F5")
-                )
-                categoryText.setTextColor(android.graphics.Color.parseColor("#6200EE"))
+                androidx.core.content.ContextCompat.getColor(itemView.context, R.color.accent_soft) to
+                        androidx.core.content.ContextCompat.getColor(itemView.context, R.color.accent_text)
             }
+            categoryText.text = if (item.isManuallyCorrected) "✓ ${item.category}" else item.category
+            categoryText.setTextColor(chipText)
+            categoryChevron.setColorFilter(chipText)
+            categoryBar.background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = 100f * itemView.resources.displayMetrics.density
+                setColor(chipBg)
+            }
+
+            rowDivider.visibility = if (isLast) View.GONE else View.VISIBLE
         }
     }
 }

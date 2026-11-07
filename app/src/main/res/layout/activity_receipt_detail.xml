@@ -4,127 +4,247 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surface_muted">
+    android:background="@color/page_bg">
 
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="24dp">
+        android:orientation="vertical">
 
-        <LinearLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/detailToolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/page_bg"
+            android:theme="@style/ThemeOverlay.App.Toolbar"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="Receipt"
+            app:titleTextColor="@color/text_primary" />
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/detailToolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/page_bg"
-                android:theme="@style/ThemeOverlay.App.Toolbar"
-                app:navigationIcon="?attr/homeAsUpIndicator"
-                app:title="Receipt Details"
-                app:titleTextColor="@color/text_primary" />
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="28dp">
 
-            <!-- Receipt Image Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
-
-                <ImageView
-                    android:id="@+id/receiptImageDetail"
-                    android:layout_width="match_parent"
-                    android:layout_height="280dp"
-                    android:scaleType="fitCenter"
-                    android:src="@mipmap/ic_launcher"
-                    android:contentDescription="Receipt image" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Summary Card -->
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
 
-                <LinearLayout
+                <!-- ═══ SUMMARY ═══ -->
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginTop="4dp"
+                    app:cardCornerRadius="18dp">
 
-                    <TextView
-                        android:id="@+id/detailStoreNameTextView"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Receipt"
-                        android:textSize="18sp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/black"
-                        android:layout_marginBottom="6dp" />
+                        android:background="@drawable/bg_total_summary"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="20dp"
+                        android:paddingVertical="18dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                        <!-- Store tile + name + date -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/detailStoreInitial"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:background="@drawable/bg_icon_tile"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:text="R"
+                                android:textColor="@color/accent_text"
+                                android:textSize="18sp" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/detailStoreNameTextView"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:maxLines="1"
+                                    android:text="Receipt"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="17sp" />
+
+                                <TextView
+                                    android:id="@+id/detailDateTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Date"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="18dp"
+                            android:text="Total paid"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/detailTotalTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="RM 0.00"
+                            android:textAppearance="@style/TextAppearance.App.Hero"
+                            android:textColor="@color/brand_blue" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="16dp"
+                            android:background="@color/stroke" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Items"
+                                    android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                                <TextView
+                                    android:id="@+id/detailItemCountTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:text="0"
+                                    android:textAppearance="@style/TextAppearance.App.StatValue" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Categories"
+                                    android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                                <TextView
+                                    android:id="@+id/detailCategoriesTextView"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="—"
+                                    android:textAppearance="@style/TextAppearance.App.StatValue" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- ═══ RECEIPT PHOTO (tap to expand) ═══ -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="Receipt photo"
+                    android:textAppearance="@style/TextAppearance.App.Title" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/receiptImageCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Total Amount"
-                        android:textSize="13sp"
-                        android:textColor="@color/gray" />
+                        android:background="@color/surface_muted">
 
-                    <TextView
-                        android:id="@+id/detailTotalTextView"
-                        android:layout_width="wrap_content"
+                        <ImageView
+                            android:id="@+id/receiptImageDetail"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:contentDescription="Receipt image"
+                            android:scaleType="centerCrop"
+                            android:src="@mipmap/ic_launcher" />
+
+                        <TextView
+                            android:id="@+id/imageExpandHint"
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:layout_gravity="bottom|end"
+                            android:layout_margin="10dp"
+                            android:background="@drawable/bg_pill"
+                            android:gravity="center"
+                            android:paddingHorizontal="12dp"
+                            android:text="Tap to expand"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp" />
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- ═══ ITEMS ═══ -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:text="Items purchased"
+                    android:textAppearance="@style/TextAppearance.App.Title" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="Tap a category to change it"
+                    android:textAppearance="@style/TextAppearance.App.Caption" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/detailItemsRecyclerView"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="RM 0.00"
-                        android:textSize="26sp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/accent_text" />
+                        android:nestedScrollingEnabled="false" />
+                </com.google.android.material.card.MaterialCardView>
 
-                    <TextView
-                        android:id="@+id/detailDateTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Date"
-                        android:textSize="13sp"
-                        android:textColor="@color/gray"
-                        android:layout_marginTop="4dp" />
-
-                    <TextView
-                        android:id="@+id/detailItemCountTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0 items"
-                        android:textSize="13sp"
-                        android:textColor="@color/gray"
-                        android:layout_marginTop="2dp" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Items Header -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Items Purchased"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="@color/black"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/detailItemsRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="8dp" />
-
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

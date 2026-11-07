@@ -33,6 +33,12 @@ class ReceiptDetailActivity : AppCompatActivity() {
     private lateinit var storeNameTextView: TextView
     private lateinit var itemsRecyclerView: RecyclerView
     private lateinit var toolbar: Toolbar
+    private lateinit var storeInitialTextView: TextView
+    private lateinit var categoriesTextView: TextView
+    private lateinit var imageExpandHint: TextView
+    private lateinit var receiptImageCard: android.view.View
+    private var imageExpanded = false
+    private var hasPhoto = false
 
     private val firebaseRepo = FirebaseRepository()
     private var receipt: Receipt? = null
@@ -66,6 +72,29 @@ class ReceiptDetailActivity : AppCompatActivity() {
         storeNameTextView = findViewById(R.id.detailStoreNameTextView)
         itemsRecyclerView = findViewById(R.id.detailItemsRecyclerView)
         toolbar = findViewById(R.id.detailToolbar)
+        storeInitialTextView = findViewById(R.id.detailStoreInitial)
+        categoriesTextView = findViewById(R.id.detailCategoriesTextView)
+        imageExpandHint = findViewById(R.id.imageExpandHint)
+        receiptImageCard = findViewById(R.id.receiptImageCard)
+
+        // Tap the photo to see the whole receipt; tap again to collapse.
+        receiptImageCard.setOnClickListener {
+            if (!hasPhoto) return@setOnClickListener
+            imageExpanded = !imageExpanded
+            val lp = receiptImage.layoutParams
+            if (imageExpanded) {
+                lp.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                receiptImage.adjustViewBounds = true
+                receiptImage.scaleType = ImageView.ScaleType.FIT_CENTER
+                imageExpandHint.text = "Tap to collapse"
+            } else {
+                lp.height = (200 * resources.displayMetrics.density).toInt()
+                receiptImage.adjustViewBounds = false
+                receiptImage.scaleType = ImageView.ScaleType.CENTER_CROP
+                imageExpandHint.text = "Tap to expand"
+            }
+            receiptImage.layoutParams = lp
+        }
 
         itemAdapter = ReceiptItemAdapter(
             onItemChanged = { oldItem, newItem ->
@@ -80,6 +109,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
 
                         withContext(Dispatchers.Main) {
                             itemAdapter.updateItems(receipt!!.items)
+                            categoriesTextView.text = categorySummary(receipt!!)
                             Toast.makeText(
                                 this@ReceiptDetailActivity,
                                 "Category updated to ${newItem.category}",
@@ -110,31 +140,43 @@ class ReceiptDetailActivity : AppCompatActivity() {
     private fun bindData(r: Receipt) {
         totalTextView.text = "RM ${String.format("%.2f", r.totalAmount)}"
 
-        val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("d MMM yyyy · h:mm a", Locale.getDefault())
         dateTextView.text = dateFormat.format(r.date.toDate())
 
-        val count = r.items.size
-        itemCountTextView.text = if (count == 1) "1 item" else "$count items"
+        itemCountTextView.text = r.items.size.toString()
+        categoriesTextView.text = categorySummary(r)
 
-        storeNameTextView.text = r.storeName.ifEmpty { "Receipt" }
-        toolbar.title = r.storeName.ifEmpty { "Receipt Details" }
+        setStoreName(r.storeName)
 
-        if (r.imageUri.isNotEmpty()) {
-            try {
-                val file = File(r.imageUri)
-                if (file.exists()) {
-                    receiptImage.setImageURI(Uri.fromFile(file))
-                } else {
-                    receiptImage.setImageResource(R.mipmap.ic_launcher)
-                }
-            } catch (e: Exception) {
-                receiptImage.setImageResource(R.mipmap.ic_launcher)
-            }
+        hasPhoto = try {
+            r.imageUri.isNotEmpty() && File(r.imageUri).exists()
+        } catch (e: Exception) { false }
+
+        if (hasPhoto) {
+            receiptImage.setImageURI(Uri.fromFile(File(r.imageUri)))
+            imageExpandHint.text = "Tap to expand"
         } else {
             receiptImage.setImageResource(R.mipmap.ic_launcher)
+            receiptImage.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            imageExpandHint.text = "No photo saved"
         }
 
         itemAdapter.updateItems(r.items)
+    }
+
+    private fun setStoreName(name: String) {
+        val shown = name.ifEmpty { "Receipt" }
+        storeNameTextView.text = shown
+        toolbar.title = shown
+        storeInitialTextView.text = shown.trim().firstOrNull { it.isLetterOrDigit() }
+            ?.uppercaseChar()?.toString() ?: "R"
+    }
+
+    /** "Food & Dining" or "Food & Dining +2" */
+    private fun categorySummary(r: Receipt): String {
+        val counts = r.items.groupingBy { it.category }.eachCount()
+        val top = counts.maxByOrNull { it.value }?.key ?: return "—"
+        return if (counts.size > 1) "$top +${counts.size - 1}" else top
     }
 
     private fun showRenameDialog() {
@@ -165,8 +207,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
             firebaseRepo.renameReceipt(r.id, newName)
             receipt = r.copy(storeName = newName)
             withContext(Dispatchers.Main) {
-                storeNameTextView.text = newName
-                toolbar.title = newName
+                setStoreName(newName)
                 Toast.makeText(
                     this@ReceiptDetailActivity,
                     "Renamed to \"$newName\"",

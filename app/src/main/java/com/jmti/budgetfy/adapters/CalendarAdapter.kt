@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
@@ -17,6 +18,10 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * Year grid of 12 month cards. Each card shows the month's total, opens
+ * that month's receipts when tapped, and marks days that have receipts.
+ */
 class CalendarAdapter(
     private val year: Int,
     private val receipts: List<Receipt>,
@@ -26,14 +31,23 @@ class CalendarAdapter(
     private val monthNames = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     private val fullMonthNames = arrayOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
 
+    private val dateKeyFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val daysWithReceipts = mutableSetOf<String>()
+    private val receiptsByMonth = Array(12) { mutableListOf<Receipt>() }
+
+    private val now = Calendar.getInstance()
+    private val todayKey = dateKeyFormat.format(now.time)
 
     init {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val cal = Calendar.getInstance()
         receipts.forEach { receipt ->
             try {
-                daysWithReceipts.add(dateFormat.format(receipt.date.toDate()))
-            } catch (e: Exception) {}
+                val date = receipt.date.toDate()
+                daysWithReceipts.add(dateKeyFormat.format(date))
+                cal.time = date
+                if (cal.get(Calendar.YEAR) == year) receiptsByMonth[cal.get(Calendar.MONTH)].add(receipt)
+            } catch (e: Exception) {
+            }
         }
     }
 
@@ -44,38 +58,49 @@ class CalendarAdapter(
 
     override fun onBindViewHolder(holder: MonthViewHolder, position: Int) {
         val month = position
+        val context = holder.itemView.context
+        val monthReceipts = receiptsByMonth[month]
+        val total = monthReceipts.sumOf { it.totalAmount }
+
         holder.monthNameTextView.text = monthNames[month]
+        holder.monthTotalTextView.text = if (total > 0) compactRm(total) else ""
 
-        // ✅ NEW: Make the month name clickable
-        holder.monthNameTextView.setOnClickListener {
-            val intent = Intent(holder.itemView.context, TransactionHistoryActivity::class.java)
+        val isCurrentMonth = year == now.get(Calendar.YEAR) && month == now.get(Calendar.MONTH)
+        holder.monthCard.setBackgroundResource(
+            if (isCurrentMonth) R.drawable.bg_month_card_current else R.drawable.bg_month_card
+        )
+        holder.monthNameTextView.setTextColor(
+            ContextCompat.getColor(context, if (isCurrentMonth) R.color.accent_text else R.color.text_primary)
+        )
 
-            // Filter receipts for this specific month
-            val receiptsInMonth = receipts.filter {
-                try {
-                    val cal = Calendar.getInstance()
-                    cal.time = it.date.toDate()
-                    cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) == month
-                } catch (e: Exception) { false }
-            }
-
-            // Pass month name and receipts to next screen
+        // The whole card opens this month's receipts.
+        holder.monthCard.setOnClickListener {
+            val intent = Intent(context, TransactionHistoryActivity::class.java)
             intent.putExtra("MONTH_YEAR", "${fullMonthNames[month]} $year")
-            intent.putExtra("RECEIPTS_LIST", Gson().toJson(receiptsInMonth))
-            holder.itemView.context.startActivity(intent)
+            intent.putExtra("RECEIPTS_LIST", Gson().toJson(monthReceipts))
+            context.startActivity(intent)
         }
 
-        val days = generateDaysForMonth(year, month)
-        val dayAdapter = DayAdapter(days, daysWithReceipts, onDayClick)
-
-        holder.daysRecyclerView.layoutManager = GridLayoutManager(holder.itemView.context, 7)
-        holder.daysRecyclerView.adapter = dayAdapter
+        holder.daysRecyclerView.layoutManager = GridLayoutManager(context, 7)
+        // Taps on days without receipts open the month, like the rest of the card.
+        holder.daysRecyclerView.adapter = DayAdapter(generateDaysForMonth(year, month)) {
+            holder.monthCard.performClick()
+        }
     }
 
     override fun getItemCount(): Int = 12
 
+    /** "RM 84", "RM 1.2k": fits in the narrow month header. */
+    private fun compactRm(amount: Double): String = when {
+        amount >= 10_000 -> "RM %.0fk".format(amount / 1000)
+        amount >= 1_000 -> "RM %.1fk".format(amount / 1000)
+        else -> "RM %.0f".format(amount)
+    }
+
     class MonthViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val monthCard: View = itemView.findViewById(R.id.monthCard)
         val monthNameTextView: TextView = itemView.findViewById(R.id.monthNameTextView)
+        val monthTotalTextView: TextView = itemView.findViewById(R.id.monthTotalTextView)
         val daysRecyclerView: RecyclerView = itemView.findViewById(R.id.daysRecyclerView)
     }
 
@@ -87,26 +112,19 @@ class CalendarAdapter(
         val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
         val maxDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-        for (i in 0 until firstDayOfWeek) {
-            days.add(null)
-        }
-
+        repeat(firstDayOfWeek) { days.add(null) }
         for (i in 1..maxDays) {
             val dayCal = Calendar.getInstance()
             dayCal.set(year, month, i)
             days.add(dayCal)
         }
-
         return days
     }
 
     inner class DayAdapter(
         private val days: List<Calendar?>,
-        private val activeDays: Set<String>,
-        private val onDayClick: (Calendar) -> Unit
+        private val onOtherClick: () -> Unit
     ) : RecyclerView.Adapter<DayAdapter.DayViewHolder>() {
-
-        private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         override fun onCreateViewHolder(parent: ViewGroup, itemViewType: Int): DayViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.item_calendar_day, parent, false)
@@ -115,30 +133,44 @@ class CalendarAdapter(
 
         override fun onBindViewHolder(holder: DayViewHolder, position: Int) {
             val cal = days[position]
+            val context = holder.itemView.context
+            val dayText = holder.dayText
 
             if (cal == null) {
-                holder.dayText.text = ""
-                holder.dayText.setTextColor(Color.TRANSPARENT)
-                holder.itemView.isClickable = false
-                holder.itemView.setBackgroundColor(Color.TRANSPARENT)
-            } else {
-                val dayStr = cal.get(Calendar.DAY_OF_MONTH).toString()
-                holder.dayText.text = dayStr
-                val dateKey = dateFormat.format(cal.time)
+                dayText.text = ""
+                dayText.background = null
+                holder.itemView.setOnClickListener { onOtherClick() }
+                return
+            }
 
-                if (activeDays.contains(dateKey)) {
-                    holder.dayText.setTextColor(Color.WHITE)
-                    holder.dayText.setTypeface(null, Typeface.BOLD)
-                    holder.itemView.setBackgroundResource(R.drawable.bg_calendar_active_day)
-                } else {
-                    holder.dayText.setTextColor(Color.BLACK)
-                    holder.dayText.setTypeface(null, Typeface.NORMAL)
-                    holder.itemView.setBackgroundColor(Color.TRANSPARENT)
-                }
+            dayText.text = cal.get(Calendar.DAY_OF_MONTH).toString()
+            val dateKey = dateKeyFormat.format(cal.time)
+            val hasReceipts = daysWithReceipts.contains(dateKey)
+            val isToday = dateKey == todayKey
+            val isFuture = cal.after(now) && !isToday
 
-                holder.itemView.setOnClickListener {
-                    onDayClick(cal)
+            when {
+                hasReceipts -> {
+                    dayText.setBackgroundResource(R.drawable.bg_calendar_active_day)
+                    dayText.setTextColor(Color.WHITE)
+                    dayText.setTypeface(null, Typeface.BOLD)
                 }
+                isToday -> {
+                    dayText.setBackgroundResource(R.drawable.bg_calendar_today)
+                    dayText.setTextColor(ContextCompat.getColor(context, R.color.accent_text))
+                    dayText.setTypeface(null, Typeface.BOLD)
+                }
+                else -> {
+                    dayText.background = null
+                    dayText.setTextColor(
+                        ContextCompat.getColor(context, if (isFuture) R.color.text_tertiary else R.color.text_primary)
+                    )
+                    dayText.setTypeface(null, Typeface.NORMAL)
+                }
+            }
+
+            holder.itemView.setOnClickListener {
+                if (hasReceipts) onDayClick(cal) else onOtherClick()
             }
         }
 

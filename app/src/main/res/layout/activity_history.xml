@@ -6,48 +6,223 @@
     android:layout_height="match_parent"
     android:background="@color/page_bg">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/historyScrollView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="80dp">
+        android:orientation="vertical">
 
-        <LinearLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/historyToolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/page_bg"
+            android:theme="@style/ThemeOverlay.App.Toolbar"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="History"
+            app:titleTextColor="@color/text_primary" />
 
-            <!-- Top Header -->
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/historyToolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/page_bg"
-                android:theme="@style/ThemeOverlay.App.Toolbar"
-                app:navigationIcon="?attr/homeAsUpIndicator"
-                app:title="Receipt History"
-                app:titleTextColor="@color/text_primary" />
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/historyScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="32dp">
 
-            <!-- Year Header -->
-            <TextView
-                android:id="@+id/yearTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="2026"
-                android:textSize="26sp"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="@color/text_primary"
-                android:padding="16dp" />
-
-            <!-- The Calendar grid -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/calendarRecyclerView"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="16dp" />
+                android:orientation="vertical">
 
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+                <!-- ═══ YEAR SWITCHER: ‹ 2026 › ═══ -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:id="@+id/yearTextView"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-black"
+                        android:includeFontPadding="false"
+                        android:letterSpacing="-0.02"
+                        android:text="2026"
+                        android:textColor="@color/text_primary"
+                        android:textSize="30sp" />
+
+                    <ImageButton
+                        android:id="@+id/prevYearButton"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@drawable/bg_pill"
+                        android:contentDescription="Previous year"
+                        android:padding="8dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_chevron_left" />
+
+                    <ImageButton
+                        android:id="@+id/nextYearButton"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_pill"
+                        android:contentDescription="Next year"
+                        android:padding="8dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_primary" />
+                </LinearLayout>
+
+                <!-- ═══ YEAR SUMMARY ═══ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="18dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_total_summary"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="20dp"
+                        android:paddingVertical="18dp">
+
+                        <TextView
+                            android:id="@+id/yearSpentLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Spent in 2026"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/yearTotalTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="RM 0.00"
+                            android:textAppearance="@style/TextAppearance.App.Hero"
+                            android:textColor="@color/brand_blue"
+                            android:textSize="32sp" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="16dp"
+                            android:background="@color/stroke" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Receipts"
+                                    android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                                <TextView
+                                    android:id="@+id/yearReceiptsValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:text="0"
+                                    android:textAppearance="@style/TextAppearance.App.StatValue" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Active days"
+                                    android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                                <TextView
+                                    android:id="@+id/yearActiveDaysValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:text="0"
+                                    android:textAppearance="@style/TextAppearance.App.StatValue" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Monthly avg"
+                                    android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                                <TextView
+                                    android:id="@+id/yearMonthlyAvgValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:text="RM 0.00"
+                                    android:textAppearance="@style/TextAppearance.App.StatValue" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- ═══ CALENDAR ═══ -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="24dp"
+                    android:text="Calendar"
+                    android:textAppearance="@style/TextAppearance.App.Title" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Tap a month or a highlighted day to see its receipts"
+                    android:textAppearance="@style/TextAppearance.App.Caption" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/calendarRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingHorizontal="12dp" />
+
+                <ProgressBar
+                    android:id="@+id/historyProgressBar"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="40dp"
+                    android:indeterminateTint="@color/brand_blue" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

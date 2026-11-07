@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One day cell. The highlight goes on the fixed 19dp number, never the
+     (wider) cell, so circles stay round and never touch. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="24dp"
-    android:layout_margin="0dp"
-    android:clickable="true"
-    android:focusable="true">
+    android:layout_height="22dp">
 
     <TextView
         android:id="@+id/dayNumberTextView"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
+        android:layout_width="19dp"
+        android:layout_height="19dp"
         android:layout_gravity="center"
         android:gravity="center"
+        android:includeFontPadding="false"
         android:text="1"
-        android:textSize="10sp"
-        android:textColor="@color/text_primary" />
-
+        android:textColor="@color/text_primary"
+        android:textSize="9.5sp" />
 </FrameLayout>

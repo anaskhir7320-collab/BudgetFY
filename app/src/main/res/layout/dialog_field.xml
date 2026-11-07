@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A labeled, rounded text field used inside dialogs (see DialogForm) -->
+<com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.App.TextInput"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/dialogFieldInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15sp" />
+</com.google.android.material.textfield.TextInputLayout>

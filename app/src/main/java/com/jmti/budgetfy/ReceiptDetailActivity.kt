@@ -1,6 +1,6 @@
 package com.jmti.budgetfy
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
@@ -180,15 +180,12 @@ class ReceiptDetailActivity : AppCompatActivity() {
     }
 
     private fun showRenameDialog() {
-        val input = EditText(this).apply {
-            setText(receipt?.storeName ?: "")
-            inputType = InputType.TYPE_CLASS_TEXT
-            hint = "Enter new name"
-        }
+        val form = com.jmti.budgetfy.utils.DialogForm(this)
+        val input = form.field("Store name", receipt?.storeName ?: "")
 
-        AlertDialog.Builder(this)
-            .setTitle("Rename Receipt")
-            .setView(input)
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Rename receipt")
+            .setView(form.view)
             .setPositiveButton("Save") { _, _ ->
                 val newName = input.text.toString().trim()
                 if (newName.isEmpty()) {
@@ -218,8 +215,8 @@ class ReceiptDetailActivity : AppCompatActivity() {
     }
 
     private fun confirmDelete() {
-        AlertDialog.Builder(this)
-            .setTitle("Delete Receipt?")
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Delete receipt?")
             .setMessage("This will remove the receipt and reverse its budget impact. Cannot be undone.")
             .setPositiveButton("Delete") { _, _ -> deleteReceipt() }
             .setNegativeButton("Cancel", null)

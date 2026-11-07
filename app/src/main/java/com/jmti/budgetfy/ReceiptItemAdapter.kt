@@ -1,6 +1,6 @@
 package com.jmti.budgetfy.adapters
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.Context
 import android.text.InputType
 import android.view.LayoutInflater
@@ -59,8 +59,8 @@ class ReceiptItemAdapter(
 
     private fun showCategoryDialog(context: Context, item: ReceiptItem) {
         val currentIndex = categories.indexOfFirst { it == item.category }.coerceAtLeast(0)
-        AlertDialog.Builder(context)
-            .setTitle("Category for: ${item.name}")
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Choose a category")
             .setSingleChoiceItems(categories, currentIndex) { dialog, which ->
                 val newCategory = categories[which]
                 val updated = item.copy(
@@ -75,31 +75,17 @@ class ReceiptItemAdapter(
     }
 
     private fun showEditItemDialog(context: Context, item: ReceiptItem) {
-        val layout = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(48, 32, 48, 16)
-        }
-        val nameInput = EditText(context).apply {
-            hint = "Item name"
-            setText(item.name)
-            inputType = InputType.TYPE_CLASS_TEXT
-        }
-        layout.addView(nameInput)
-        val qtyInput = EditText(context).apply {
-            hint = "Quantity"
-            setText(item.quantity)
-            inputType = InputType.TYPE_CLASS_NUMBER
-        }
-        layout.addView(qtyInput)
-        val priceInput = EditText(context).apply {
-            hint = "Price (RM)"
-            setText(String.format("%.2f", item.price))
-            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-        layout.addView(priceInput)
+        val form = com.jmti.budgetfy.utils.DialogForm(context)
+        val nameInput = form.field("Item name", item.name)
+        val qtyInput = form.field("Quantity", item.quantity, com.jmti.budgetfy.utils.DialogForm.NUMBER)
+        val priceInput = form.field(
+            "Price", String.format("%.2f", item.price),
+            com.jmti.budgetfy.utils.DialogForm.DECIMAL, prefix = "RM "
+        )
+        val layout = form.view
 
-        val builder = AlertDialog.Builder(context)
-            .setTitle("Edit Item")
+        val builder = MaterialAlertDialogBuilder(context)
+            .setTitle("Edit item")
             .setView(layout)
             .setPositiveButton("Save") { _, _ ->
                 val newName = nameInput.text.toString().trim().ifEmpty { item.name }
@@ -122,8 +108,8 @@ class ReceiptItemAdapter(
         // ✅ NEW: Add delete button if callback is provided
         if (onItemDeleted != null) {
             builder.setNeutralButton("Delete") { _, _ ->
-                AlertDialog.Builder(context)
-                    .setTitle("Delete Item?")
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("Delete item?")
                     .setMessage("Remove \"${item.name}\" from this receipt?")
                     .setPositiveButton("Delete") { _, _ ->
                         onItemDeleted.invoke(item)

@@ -1,6 +1,6 @@
 package com.jmti.budgetfy
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -175,8 +175,8 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun confirmResetOverall() {
-        AlertDialog.Builder(this)
-            .setTitle("Reset Overall Budget?")
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Reset overall budget?")
             .setMessage(
                 "This will:\n\n" +
                         "• Set overall budget to RM 0.00\n" +
@@ -207,8 +207,8 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun confirmFullReset() {
-        AlertDialog.Builder(this)
-            .setTitle("Full Reset?")
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Full reset?")
             .setMessage(
                 "This will DELETE:\n\n" +
                         "• All receipts for this month\n" +
@@ -238,8 +238,8 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun logoutUser() {
-        AlertDialog.Builder(this)
-            .setTitle("Logout?")
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Log out?")
             .setMessage("Are you sure you want to logout?")
             .setPositiveButton("Logout") { _, _ ->
                 CoroutineScope(Dispatchers.IO).launch {

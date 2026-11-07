@@ -178,6 +178,8 @@
 
                         <AutoCompleteTextView
                             android:id="@+id/categoryDropdown"
+                            android:popupBackground="@drawable/bg_popup"
+                            android:dropDownVerticalOffset="6dp"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="none" />

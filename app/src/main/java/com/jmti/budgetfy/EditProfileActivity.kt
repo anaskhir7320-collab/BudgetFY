@@ -1,6 +1,6 @@
 package com.jmti.budgetfy
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -156,7 +156,7 @@ class EditProfileActivity : AppCompatActivity() {
     private fun setupListeners() {
         cancelButton.setOnClickListener {
             if (hasChanges) {
-                AlertDialog.Builder(this)
+                MaterialAlertDialogBuilder(this)
                     .setTitle("Discard changes?")
                     .setMessage("Your edits will not be saved.")
                     .setPositiveButton("Discard") { _, _ -> finish() }
@@ -266,15 +266,12 @@ class EditProfileActivity : AppCompatActivity() {
     //  DISPLAY NAME DIALOG
     // ═══════════════════════════════════════════════════════════
     private fun showEditNameDialog() {
-        val input = EditText(this).apply {
-            setText(currentDisplayName)
-            inputType = InputType.TYPE_CLASS_TEXT
-            hint = "Enter your name"
-        }
+        val form = com.jmti.budgetfy.utils.DialogForm(this)
+        val input = form.field("Your name", currentDisplayName)
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Display name")
-            .setView(input)
+            .setView(form.view)
             .setPositiveButton("Save") { _, _ ->
                 val newName = input.text.toString().trim()
                 if (newName.isEmpty()) {

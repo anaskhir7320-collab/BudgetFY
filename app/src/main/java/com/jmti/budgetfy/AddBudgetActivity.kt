@@ -86,7 +86,7 @@ class AddBudgetActivity : AppCompatActivity() {
         categories.add("Other")
         val adapter = ArrayAdapter(
             this,
-            android.R.layout.simple_dropdown_item_1line,
+            R.layout.item_dropdown,
             categories.distinct().sorted()
         )
         categoryDropdown.setAdapter(adapter)

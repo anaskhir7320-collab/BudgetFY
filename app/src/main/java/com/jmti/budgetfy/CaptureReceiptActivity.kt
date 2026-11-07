@@ -1,6 +1,6 @@
 package com.jmti.budgetfy
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
@@ -29,6 +29,7 @@ import com.jmti.budgetfy.models.Receipt
 import com.jmti.budgetfy.models.ReceiptItem
 import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.utils.CategorizationEngine
+import com.jmti.budgetfy.utils.DialogForm
 import com.jmti.budgetfy.utils.GeminiReceiptExtractor
 import com.jmti.budgetfy.utils.ImageLoader
 import com.jmti.budgetfy.utils.OCRHelper
@@ -254,16 +255,15 @@ class CaptureReceiptActivity : AppCompatActivity() {
     }
 
     private fun showEditStoreDialog() {
-        val input = EditText(this).apply {
-            setText(currentStoreName)
-            hint = "Store name (e.g., Mixue)"
-            inputType = InputType.TYPE_CLASS_TEXT
-        }
+        val form = DialogForm(this)
+        val input = form.field(
+            "Store name", currentStoreName,
+            helper = "Fix it if it was read wrong. It will be remembered next time."
+        )
 
-        AlertDialog.Builder(this)
-            .setTitle("Store Name")
-            .setMessage("Correct the store name if OCR got it wrong.\nIt will be remembered for next time.")
-            .setView(input)
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Store name")
+            .setView(form.view)
             .setPositiveButton("Save") { _, _ ->
                 val newName = input.text.toString().trim()
                 if (newName.isEmpty()) {
@@ -483,30 +483,14 @@ class CaptureReceiptActivity : AppCompatActivity() {
     }
 
     private fun showAddItemDialog() {
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(48, 32, 48, 16)
-        }
-        val nameInput = EditText(this).apply {
-            hint = "Item name"
-            inputType = InputType.TYPE_CLASS_TEXT
-        }
-        layout.addView(nameInput)
-        val qtyInput = EditText(this).apply {
-            hint = "Quantity"
-            setText("1")
-            inputType = InputType.TYPE_CLASS_NUMBER
-        }
-        layout.addView(qtyInput)
-        val priceInput = EditText(this).apply {
-            hint = "Price (RM)"
-            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-        layout.addView(priceInput)
+        val form = DialogForm(this)
+        val nameInput = form.field("Item name")
+        val qtyInput = form.field("Quantity", "1", DialogForm.NUMBER)
+        val priceInput = form.field("Price", inputType = DialogForm.DECIMAL, prefix = "RM ")
 
-        AlertDialog.Builder(this)
-            .setTitle("Add Item")
-            .setView(layout)
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Add item")
+            .setView(form.view)
             .setPositiveButton("Add") { _, _ ->
                 val name = nameInput.text.toString().trim()
                 val qty = qtyInput.text.toString().trim().ifEmpty { "1" }

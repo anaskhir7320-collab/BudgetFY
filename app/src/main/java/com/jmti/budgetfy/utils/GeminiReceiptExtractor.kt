@@ -11,21 +11,30 @@ import com.jmti.budgetfy.BuildConfig
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.math.abs
 
 /**
  * Reads a receipt with Gemini: the image is the source of truth and ML Kit's
  * text is sent along as a hint. Gemini returns strict JSON (fixed schema), so
  * no regex rules or per-store typo lists are needed.
  *
- * [extract] blocks on the network, so call it from Dispatchers.IO. It returns
- * null when no API key is configured or the request fails ([lastError] says
- * why), and the caller falls back to the on-device ReceiptParser.
+ * Two models are used:
+ * - [fastModel] (Flash-Lite) reads every receipt. It's quick, and its free
+ *   quota is larger.
+ * - [accurateModel] (Flash) re-reads a receipt only when the fast result's
+ *   items don't add up to the printed total, or it found no items. That
+ *   saves Flash's small free quota (20/day) for receipts that need it.
+ *
+ * [extract] blocks on the network, so call it from Dispatchers.IO. When
+ * reading fails, [Outcome.result] is null and the caller falls back to the
+ * on-device ReceiptParser.
  */
 class GeminiReceiptExtractor(
     private val apiKey: String = BuildConfig.GEMINI_API_KEY,
-    private val model: String = BuildConfig.GEMINI_MODEL,
-    private val fallbackModel: String = BuildConfig.GEMINI_FALLBACK_MODEL,
-    private val thinkingLevel: String = BuildConfig.GEMINI_THINKING_LEVEL
+    private val fastModel: String = BuildConfig.GEMINI_MODEL,
+    private val accurateModel: String = BuildConfig.GEMINI_ACCURATE_MODEL,
+    private val fastThinkingLevel: String = BuildConfig.GEMINI_THINKING_LEVEL,
+    private val accurateThinkingLevel: String = BuildConfig.GEMINI_ACCURATE_THINKING_LEVEL
 ) {
 
     data class Item(
@@ -46,36 +55,95 @@ class GeminiReceiptExtractor(
         val serviceCharge: Double?,
         val discount: Double?,
         val rounding: Double?,
-        val total: Double?
+        val total: Double?,
+        /** Which Gemini model produced this result. */
+        val model: String = ""
     ) {
         /** Charges added on top of the item lines; 0 when the receipt is tax-inclusive. */
         val extras: Double
             get() = (tax ?: 0.0) + (serviceCharge ?: 0.0) + (rounding ?: 0.0) - (discount ?: 0.0)
+
+        val itemsSum: Double get() = items.sumOf { it.lineTotal }
+
+        /**
+         * false when the items don't add up to the printed total (a missed,
+         * doubled or misread line); null when there's no total to compare.
+         */
+        val addsUp: Boolean?
+            get() {
+                val printed = total?.takeIf { it > 0.0 } ?: return null
+                return abs(itemsSum + extras - printed) <= TOLERANCE ||
+                        abs(itemsSum - printed) <= TOLERANCE
+            }
+
+        /** How far the items are from the printed total (0 when they add up). */
+        val mismatch: Double
+            get() {
+                val printed = total ?: return 0.0
+                return minOf(abs(itemsSum + extras - printed), abs(itemsSum - printed))
+            }
     }
 
-    /** [result] is null when reading failed; [error] then says why. */
-    data class Outcome(val result: Result?, val error: String?)
+    /**
+     * [result] is null when reading failed; [error] then says why.
+     * [rechecked] is true when the accurate model re-read the receipt.
+     */
+    data class Outcome(val result: Result?, val error: String?, val rechecked: Boolean = false)
 
     val isConfigured: Boolean get() = apiKey.isNotBlank()
 
     fun extract(bitmap: Bitmap, ocrText: String, categories: List<String>): Outcome {
         if (!isConfigured) return Outcome(null, "No GEMINI_API_KEY in local.properties")
-        return try {
-            val request = buildRequest(bitmap, ocrText, categories)
+        val request = try {
+            buildRequest(bitmap, ocrText, categories)
+        } catch (e: Exception) {
+            return Outcome(null, e.message ?: e.javaClass.simpleName)
+        }
 
-            // Skip a model whose daily/minute quota is known to be used up, so
-            // the user doesn't wait for a request that will certainly fail.
+        // Step 1: fast read. If the fast model is unavailable (busy or out of
+        // quota), the accurate model is the backup.
+        val first = readWithFirstAvailable(listOf(fastModel, accurateModel), request)
+        val firstResult = first.result ?: return first
+
+        // Step 2: re-read with the accurate model only when the fast result
+        // looks wrong, and only if it didn't already come from that model.
+        val looksWrong = firstResult.items.isEmpty() || firstResult.addsUp == false
+        if (!looksWrong || firstResult.model == accurateModel || accurateModel.isBlank()) return first
+
+        Log.d(
+            TAG, "${firstResult.model}: items RM %.2f vs total RM %s, re-checking with $accurateModel"
+                .format(firstResult.itemsSum, firstResult.total)
+        )
+        val second = readWithFirstAvailable(listOf(accurateModel), request)
+        val secondResult = second.result
+        if (secondResult == null || secondResult.items.isEmpty()) {
+            Log.d(TAG, "Re-check unavailable (${second.error}), keeping the fast result")
+            return first
+        }
+
+        // Keep whichever result is closer to the printed total; Flash wins ties.
+        val better = when {
+            firstResult.items.isEmpty() -> secondResult
+            secondResult.addsUp != false -> secondResult
+            secondResult.mismatch <= firstResult.mismatch -> secondResult
+            else -> firstResult
+        }
+        Log.d(TAG, "Re-check: kept ${better.model}")
+        return Outcome(better, null, rechecked = true)
+    }
+
+    /** Tries each model in order, skipping ones whose quota is known to be used up. */
+    private fun readWithFirstAvailable(candidates: List<String>, request: JsonObject): Outcome {
+        return try {
             val now = System.currentTimeMillis()
-            val models = listOf(model, fallbackModel)
-                .filter { it.isNotBlank() }
-                .distinct()
+            val models = candidates.filter { it.isNotBlank() }.distinct()
             val usable = models.filter { (blockedUntil[it] ?: 0L) <= now }.ifEmpty { models }
 
             var lastFailure: HttpError? = null
             for (m in usable) {
                 try {
                     val started = System.currentTimeMillis()
-                    val result = parseResult(send(m, request))
+                    val result = parseResult(send(m, request)).copy(model = m)
                     Log.d(TAG, "$m answered in ${System.currentTimeMillis() - started} ms")
                     return Outcome(result, null)
                 } catch (e: HttpError) {
@@ -94,11 +162,13 @@ class GeminiReceiptExtractor(
     }
 
     /**
-     * Sends with the configured thinking level. Receipts don't need deep
-     * reasoning, and "minimal" thinking roughly halves the response time.
-     * A model that rejects the setting is remembered and sent without it.
+     * Sends with the model's thinking level. The fast model uses "minimal"
+     * (quickest); the accurate model uses a bit more, since it only runs on
+     * receipts that were hard to read. A model that rejects the setting is
+     * remembered and sent without it.
      */
     private fun send(model: String, request: JsonObject): String {
+        val thinkingLevel = if (model == accurateModel) accurateThinkingLevel else fastThinkingLevel
         if (thinkingLevel.isNotBlank() && model !in thinkingUnsupported) {
             val withThinking = request.deepCopy().apply {
                 getAsJsonObject("generationConfig").add("thinkingConfig", JsonObject().apply {
@@ -346,6 +416,9 @@ class GeminiReceiptExtractor(
     companion object {
         private const val TAG = "GEMINI"
         private const val MAX_IMAGE_SIDE = 2048
+
+        /** Allows for 5-sen rounding on Malaysian receipts. */
+        private const val TOLERANCE = 0.06
 
         // Shared across screens so a used-up quota is remembered for the app session.
         private val blockedUntil = java.util.concurrent.ConcurrentHashMap<String, Long>()

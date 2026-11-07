@@ -2,8 +2,9 @@ import java.util.Properties
 
 // Secrets live in local.properties (git-ignored), never in source:
 //   GEMINI_API_KEY=your-key-from-aistudio.google.com
-//   GEMINI_MODEL=gemini-flash-latest          (optional)
-//   GEMINI_FALLBACK_MODEL=gemini-flash-lite-latest   (optional, used when the main model is busy)
+//   GEMINI_MODEL=gemini-flash-lite-latest         (optional) fast model, reads every receipt
+//   GEMINI_ACCURATE_MODEL=gemini-flash-latest     (optional) re-reads receipts whose items
+//                                                 don't add up to the total
 val localProps = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
@@ -34,16 +35,21 @@ android {
         )
         buildConfigField(
             "String", "GEMINI_MODEL",
-            "\"${localProps.getProperty("GEMINI_MODEL", "gemini-flash-latest")}\""
+            "\"${localProps.getProperty("GEMINI_MODEL", "gemini-flash-lite-latest")}\""
         )
         buildConfigField(
-            "String", "GEMINI_FALLBACK_MODEL",
-            "\"${localProps.getProperty("GEMINI_FALLBACK_MODEL", "gemini-flash-lite-latest")}\""
+            "String", "GEMINI_ACCURATE_MODEL",
+            "\"${localProps.getProperty("GEMINI_ACCURATE_MODEL", "gemini-flash-latest")}\""
         )
-        // minimal / low / medium / high. Receipts read fine at "minimal", and it's much faster.
+        // minimal / low / medium / high. The fast read uses "minimal" (quickest);
+        // the re-check thinks a little more because it only runs on hard receipts.
         buildConfigField(
             "String", "GEMINI_THINKING_LEVEL",
             "\"${localProps.getProperty("GEMINI_THINKING_LEVEL", "minimal")}\""
+        )
+        buildConfigField(
+            "String", "GEMINI_ACCURATE_THINKING_LEVEL",
+            "\"${localProps.getProperty("GEMINI_ACCURATE_THINKING_LEVEL", "low")}\""
         )
     }
 

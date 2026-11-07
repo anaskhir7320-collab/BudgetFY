@@ -337,7 +337,9 @@ class CaptureReceiptActivity : AppCompatActivity() {
     private class Analysis(
         val ocr: OCRHelper.OcrOutput,
         val ai: GeminiReceiptExtractor.Result?,
-        val aiError: String?
+        val aiError: String?,
+        /** True when the fast read didn't add up and the accurate model re-read it. */
+        val rechecked: Boolean = false
     )
 
     /**
@@ -364,7 +366,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
             outcome.result.items.isEmpty() -> "no items found"
             else -> null
         }
-        return Analysis(ocr, outcome.result, error)
+        return Analysis(ocr, outcome.result, error, outcome.rechecked)
     }
 
     override fun onDestroy() {
@@ -461,6 +463,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                             "Found ${extractedItems.size} items. Tap any to edit or delete."
                     }
                     val source = when {
+                        usedAi && analysis.rechecked -> "\n(Double-checked with the accurate model.)"
                         usedAi -> ""
                         aiError != null -> "\n(AI unavailable: $aiError. Used on-device reading.)"
                         else -> ""

@@ -2,7 +2,8 @@ import java.util.Properties
 
 // Secrets live in local.properties (git-ignored), never in source:
 //   GEMINI_API_KEY=your-key-from-aistudio.google.com
-//   GEMINI_MODEL=gemini-2.5-flash   (optional)
+//   GEMINI_MODEL=gemini-flash-latest          (optional)
+//   GEMINI_FALLBACK_MODEL=gemini-flash-lite-latest   (optional, used when the main model is busy)
 val localProps = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
@@ -33,7 +34,11 @@ android {
         )
         buildConfigField(
             "String", "GEMINI_MODEL",
-            "\"${localProps.getProperty("GEMINI_MODEL", "gemini-2.5-flash")}\""
+            "\"${localProps.getProperty("GEMINI_MODEL", "gemini-flash-latest")}\""
+        )
+        buildConfigField(
+            "String", "GEMINI_FALLBACK_MODEL",
+            "\"${localProps.getProperty("GEMINI_FALLBACK_MODEL", "gemini-flash-lite-latest")}\""
         )
     }
 

@@ -23,7 +23,8 @@ import java.net.URL
  */
 class GeminiReceiptExtractor(
     private val apiKey: String = BuildConfig.GEMINI_API_KEY,
-    private val model: String = BuildConfig.GEMINI_MODEL
+    private val model: String = BuildConfig.GEMINI_MODEL,
+    private val fallbackModel: String = BuildConfig.GEMINI_FALLBACK_MODEL
 ) {
 
     data class Item(
@@ -64,7 +65,15 @@ class GeminiReceiptExtractor(
             return null
         }
         return try {
-            val responseText = post(buildRequest(bitmap, ocrText, categories))
+            val request = buildRequest(bitmap, ocrText, categories)
+            val responseText = try {
+                postWithRetry(model, request)
+            } catch (e: HttpError) {
+                // Main model still overloaded after retries: use the lighter model.
+                if (!e.isBusy || fallbackModel.isBlank() || fallbackModel == model) throw e
+                Log.w(TAG, "$model busy, falling back to $fallbackModel")
+                postWithRetry(fallbackModel, request)
+            }
             parseResult(responseText)
         } catch (e: Exception) {
             lastError = e.message ?: e.javaClass.simpleName
@@ -182,7 +191,30 @@ class GeminiReceiptExtractor(
 
     // ── HTTP ───────────────────────────────────────────────────────────────
 
-    private fun post(body: JsonObject): String {
+    private class HttpError(val code: Int, message: String) : IllegalStateException(message) {
+        val isBusy: Boolean get() = code == 429 || code == 500 || code == 503
+    }
+
+    /**
+     * Gemini sometimes answers 503 ("high demand") or 429 (rate limit) for a
+     * few seconds; those are worth retrying. Other errors fail immediately.
+     */
+    private fun postWithRetry(model: String, body: JsonObject): String {
+        val delaysMs = listOf(1_000L, 3_000L)
+        var attempt = 0
+        while (true) {
+            try {
+                return post(model, body)
+            } catch (e: HttpError) {
+                if (!e.isBusy || attempt >= delaysMs.size) throw e
+                Log.w(TAG, "Gemini busy (HTTP ${e.code}), retrying in ${delaysMs[attempt]} ms")
+                Thread.sleep(delaysMs[attempt])
+                attempt++
+            }
+        }
+    }
+
+    private fun post(model: String, body: JsonObject): String {
         val url = URL("https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent")
         val conn = url.openConnection() as HttpURLConnection
         try {
@@ -202,7 +234,7 @@ class GeminiReceiptExtractor(
                     JsonParser.parseString(text).asJsonObject
                         .getAsJsonObject("error").get("message").asString
                 }.getOrNull() ?: text.take(200)
-                throw IllegalStateException("Gemini HTTP $code: $message")
+                throw HttpError(code, "Gemini HTTP $code: $message")
             }
             return text
         } finally {

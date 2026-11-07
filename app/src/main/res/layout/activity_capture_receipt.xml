@@ -12,22 +12,27 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/purple_700"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:background="@color/page_bg"
+        android:theme="@style/ThemeOverlay.App.Toolbar"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="?attr/homeAsUpIndicator"
         app:title="Capture Receipt"
-        app:titleTextColor="@android:color/white" />
+        app:titleTextColor="@color/text_primary" />
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/receiptImageView"
         android:layout_width="match_parent"
         android:layout_height="180dp"
-        android:layout_margin="12dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/surface_muted"
+        android:padding="0.5dp"
         android:scaleType="centerCrop"
         android:src="@mipmap/ic_launcher"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize16" />
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize16"
+        app:strokeColor="@color/stroke"
+        app:strokeWidth="1dp" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -43,43 +48,56 @@
         android:id="@+id/buttonLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
         android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/receiptImageView">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/captureButton"
+            style="@style/Widget.App.Button.Outlined"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
             android:layout_marginEnd="4dp"
-            android:text="CAMERA"
-            android:textSize="11sp"
-            app:icon="@android:drawable/ic_menu_camera"
-            app:iconGravity="textStart" />
+            android:paddingHorizontal="4dp"
+            android:text="Scan"
+            android:textSize="13sp"
+            app:icon="@drawable/ic_scan"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="18dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/galleryButton"
+            style="@style/Widget.App.Button.Outlined"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
             android:layout_marginHorizontal="4dp"
-            android:text="GALLERY"
-            android:textSize="11sp"
-            app:icon="@android:drawable/ic_menu_gallery"
-            app:iconGravity="textStart" />
+            android:paddingHorizontal="4dp"
+            android:text="Gallery"
+            android:textSize="13sp"
+            app:icon="@drawable/ic_gallery"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="18dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/processButton"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
-            android:text="PROCESS"
-            android:textSize="11sp"
-            app:icon="@android:drawable/ic_menu_edit"
-            app:iconGravity="textStart" />
+            android:minHeight="46dp"
+            android:paddingHorizontal="4dp"
+            android:text="Read"
+            android:textSize="13sp"
+            app:icon="@drawable/ic_sparkle"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="18dp"
+            app:iconTint="@android:color/white" />
     </LinearLayout>
 
     <!-- Store name row -->
@@ -89,40 +107,59 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp"
-        android:background="#F5F5F5"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="4dp"
+        android:paddingVertical="6dp"
+        android:background="@drawable/bg_card_slick"
         app:layout_constraintTop_toBottomOf="@id/buttonLayout">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🏪 Store:"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_marginEnd="8dp" />
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/bg_icon_tile"
+            android:contentDescription="@null"
+            android:padding="7dp"
+            android:src="@drawable/ic_store"
+            app:tint="@color/accent_text" />
 
-        <TextView
-            android:id="@+id/storeNameTextView"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Receipt"
-            android:textSize="14sp"
-            android:textColor="@color/purple_700"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Store"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/storeNameTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="Receipt"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/storeEditIcon"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="✏️"
-            android:textSize="16sp"
-            android:padding="6dp"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:text="Edit"
+            android:textColor="@color/accent_text"
+            android:textSize="13sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -139,21 +176,19 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Extracted Items"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:text="Items"
+            android:textAppearance="@style/TextAppearance.App.Title" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/addItemButton"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.App.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="0dp"
             android:paddingHorizontal="8dp"
-            android:text="+ ADD ITEM"
-            android:textSize="12sp"
-            android:textColor="@color/purple_700" />
+            android:text="+ Add item"
+            android:textSize="13sp"
+            android:textColor="@color/accent_text" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -171,11 +206,10 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/saveButton"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="52dp"
         android:layout_margin="16dp"
-        android:text="Save Receipt"
+        android:text="Save receipt"
         android:enabled="false"
-        app:cornerRadius="12dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

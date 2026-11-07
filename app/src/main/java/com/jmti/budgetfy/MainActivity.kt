@@ -13,31 +13,52 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.gson.Gson
 import com.jmti.budgetfy.adapters.CategoryBudgetAdapter
 import com.jmti.budgetfy.adapters.ExpenseAdapter
 import com.jmti.budgetfy.models.BudgetCategory
 import com.jmti.budgetfy.models.Receipt
 import com.jmti.budgetfy.repositories.FirebaseRepository
+import com.jmti.budgetfy.views.SpendingChartView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var bottomNav: BottomNavigationView
-    private lateinit var fabCapture: FloatingActionButton
+    private lateinit var fabCapture: ExtendedFloatingActionButton
     private lateinit var totalSpentTextView: TextView
     private lateinit var totalBudgetTextView: TextView
-    private lateinit var budgetProgressBar: android.widget.ProgressBar
+    private lateinit var budgetProgressBar: LinearProgressIndicator
+    private lateinit var budgetRemainingTextView: TextView
+    private lateinit var greetingTextView: TextView
+    private lateinit var monthPill: TextView
+    private lateinit var statReceiptsValue: TextView
+    private lateinit var statDailyAvgValue: TextView
+    private lateinit var statLeftPerDayValue: TextView
+    private lateinit var spendingChart: SpendingChartView
+    private lateinit var chartSummaryTextView: TextView
+    private lateinit var chartStartLabel: TextView
+    private lateinit var chartEndLabel: TextView
+    private lateinit var chartModeCumulative: TextView
+    private lateinit var chartModeDaily: TextView
+    private lateinit var seeAllTextView: TextView
+    private lateinit var emptyTransactionsText: TextView
+    private var hasBackgroundImage = false
     private lateinit var budgetStatusTextView: TextView
     private lateinit var summaryTitleTextView: TextView
     private lateinit var alertCard: MaterialCardView
@@ -88,6 +109,27 @@ class MainActivity : AppCompatActivity() {
         summaryBackgroundImage = findViewById(R.id.summaryBackgroundImage)
         summaryOverlay = findViewById(R.id.summaryOverlay)
         summaryFrame = findViewById(R.id.summaryFrame)
+        budgetRemainingTextView = findViewById(R.id.budgetRemainingTextView)
+        greetingTextView = findViewById(R.id.greetingTextView)
+        monthPill = findViewById(R.id.monthPill)
+        statReceiptsValue = findViewById(R.id.statReceiptsValue)
+        statDailyAvgValue = findViewById(R.id.statDailyAvgValue)
+        statLeftPerDayValue = findViewById(R.id.statLeftPerDayValue)
+        spendingChart = findViewById(R.id.spendingChart)
+        chartSummaryTextView = findViewById(R.id.chartSummaryTextView)
+        chartStartLabel = findViewById(R.id.chartStartLabel)
+        chartEndLabel = findViewById(R.id.chartEndLabel)
+        chartModeCumulative = findViewById(R.id.chartModeCumulative)
+        chartModeDaily = findViewById(R.id.chartModeDaily)
+        seeAllTextView = findViewById(R.id.seeAllTextView)
+        emptyTransactionsText = findViewById(R.id.emptyTransactionsText)
+
+        greetingTextView.text = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+            in 5..11 -> "Good morning"
+            in 12..17 -> "Good afternoon"
+            else -> "Good evening"
+        }
+        monthPill.text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
 
         expenseAdapter = ExpenseAdapter { receipt ->
             val intent = Intent(this, ReceiptDetailActivity::class.java)
@@ -123,6 +165,12 @@ class MainActivity : AppCompatActivity() {
             applyCollapseState()
         }
 
+        chartModeCumulative.setOnClickListener { setChartMode(SpendingChartView.Mode.CUMULATIVE) }
+        chartModeDaily.setOnClickListener { setChartMode(SpendingChartView.Mode.DAILY) }
+
+        monthPill.setOnClickListener { startActivity(Intent(this, HistoryActivity::class.java)) }
+        seeAllTextView.setOnClickListener { openThisMonthTransactions() }
+
         // ✅ UPDATED: Now includes History tab
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -145,6 +193,28 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
+
+    /** Selected pill = solid blue with white text; the other = plain blue text. */
+    private fun setChartMode(mode: SpendingChartView.Mode) {
+        spendingChart.mode = mode
+        val cumulative = mode == SpendingChartView.Mode.CUMULATIVE
+        styleModePill(chartModeCumulative, selected = cumulative)
+        styleModePill(chartModeDaily, selected = !cumulative)
+    }
+
+    private fun styleModePill(pill: TextView, selected: Boolean) {
+        pill.setBackgroundResource(if (selected) R.drawable.bg_pill_selected else R.drawable.bg_pill_plain)
+        pill.setTextColor(
+            if (selected) Color.WHITE else ContextCompat.getColor(this, R.color.accent_text)
+        )
+    }
+
+    private fun openThisMonthTransactions() {
+        val intent = Intent(this, TransactionHistoryActivity::class.java)
+        intent.putExtra("MONTH_YEAR", monthPill.text.toString())
+        intent.putExtra("RECEIPTS_LIST", Gson().toJson(receipts))
+        startActivity(intent)
     }
 
     private fun applyCollapseState() {
@@ -173,7 +243,7 @@ class MainActivity : AppCompatActivity() {
         val mode = prefs.getString("card_mode", "standard") ?: "standard"
         val savedUri = prefs.getString("card_bg_uri", null)
 
-        val targetHeightPx = if (mode == "expanded") dpToPx(220) else dpToPx(160)
+        val targetHeightPx = if (mode == "expanded") dpToPx(220) else dpToPx(176)
         summaryFrame.layoutParams.height = targetHeightPx
         summaryFrame.requestLayout()
 
@@ -200,21 +270,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setTextColorsForNoImage() {
-        val secondaryText = Color.parseColor("#6B6B6B")
-        val primaryBlue = Color.parseColor("#0078CC")
+        hasBackgroundImage = false
+        val secondaryText = ContextCompat.getColor(this, R.color.text_secondary)
         summaryTitleTextView.setTextColor(secondaryText)
-        totalSpentTextView.setTextColor(primaryBlue)
+        totalSpentTextView.setTextColor(ContextCompat.getColor(this, R.color.brand_blue))
         totalBudgetTextView.setTextColor(secondaryText)
         budgetStatusTextView.setTextColor(secondaryText)
+        budgetRemainingTextView.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+        budgetProgressBar.trackColor = ContextCompat.getColor(this, R.color.progress_track)
     }
 
     private fun setTextColorsForImage() {
+        hasBackgroundImage = true
         val white = Color.WHITE
-        val softWhite = Color.parseColor("#F0F0F0")
+        val softWhite = Color.parseColor("#E6FFFFFF")
         summaryTitleTextView.setTextColor(softWhite)
         totalSpentTextView.setTextColor(white)
         totalBudgetTextView.setTextColor(softWhite)
         budgetStatusTextView.setTextColor(softWhite)
+        budgetRemainingTextView.setTextColor(white)
+        budgetProgressBar.trackColor = ContextCompat.getColor(this, R.color.progress_track_on_image)
     }
 
     private fun loadData() {
@@ -254,30 +329,92 @@ class MainActivity : AppCompatActivity() {
 
         totalSpentTextView.text = "RM ${String.format("%.2f", totalSpent)}"
         totalBudgetTextView.text = "of RM ${String.format("%.2f", totalBudget)} budget"
-        budgetProgressBar.progress = percentage.coerceAtMost(100)
+        budgetProgressBar.setProgressCompat(percentage.coerceAtMost(100), true)
         budgetStatusTextView.text = "$percentage% of budget used"
+
+        // Progress color follows budget health: blue → orange at 80% → red when over.
+        val healthColor = ContextCompat.getColor(
+            this,
+            when {
+                percentage >= 100 -> R.color.danger_red
+                percentage >= 80 -> R.color.warning_orange
+                else -> R.color.brand_blue
+            }
+        )
+        budgetProgressBar.setIndicatorColor(if (hasBackgroundImage && percentage < 80) Color.WHITE else healthColor)
+
+        val remaining = totalBudget - totalSpent
+        budgetRemainingTextView.text = when {
+            totalBudget <= 0 -> ""
+            remaining >= 0 -> "RM ${String.format("%.2f", remaining)} left"
+            else -> "RM ${String.format("%.2f", -remaining)} over"
+        }
 
         when {
             percentage >= 100 -> {
                 alertCard.visibility = View.VISIBLE
-                alertCard.setCardBackgroundColor(Color.parseColor("#F8D7DA"))
-                alertTextView.setTextColor(Color.parseColor("#721C24"))
-                alertTextView.text = "🚨 DANGER! You have exceeded your overall budget by RM ${String.format("%.2f", totalSpent - totalBudget)}"
+                alertTextView.setBackgroundResource(R.drawable.bg_alert_danger)
+                alertTextView.setTextColor(ContextCompat.getColor(this, R.color.alert_danger_text))
+                alertTextView.text = "You've gone over your monthly budget by RM ${String.format("%.2f", totalSpent - totalBudget)}."
             }
             percentage >= 80 -> {
                 alertCard.visibility = View.VISIBLE
-                alertCard.setCardBackgroundColor(Color.parseColor("#FFF3CD"))
-                alertTextView.setTextColor(Color.parseColor("#856404"))
-                alertTextView.text = "⚠️ WARNING! You have used $percentage% of your overall budget."
+                alertTextView.setBackgroundResource(R.drawable.bg_alert_warning)
+                alertTextView.setTextColor(ContextCompat.getColor(this, R.color.alert_warning_text))
+                alertTextView.text = "You've used $percentage% of your monthly budget."
             }
             else -> alertCard.visibility = View.GONE
         }
 
+        updateStatsAndChart(totalSpent, totalBudget)
+
+        emptyTransactionsText.visibility = if (receipts.isEmpty()) View.VISIBLE else View.GONE
+
         categoryAdapter.updateData(budgets)
+    }
+
+    /** Stats row (receipts, daily average, left per day) and the spending chart. */
+    private fun updateStatsAndChart(totalSpent: Double, totalBudget: Double) {
+        val now = Calendar.getInstance()
+        val today = now.get(Calendar.DAY_OF_MONTH)
+        val daysInMonth = now.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val daysLeft = daysInMonth - today + 1   // including today
+
+        statReceiptsValue.text = receipts.size.toString()
+        statDailyAvgValue.text = "RM ${String.format("%.2f", totalSpent / today)}"
+        val leftPerDay = if (totalBudget > 0) ((totalBudget - totalSpent) / daysLeft).coerceAtLeast(0.0) else 0.0
+        statLeftPerDayValue.text = "RM ${String.format("%.2f", leftPerDay)}"
+
+        val daily = DoubleArray(daysInMonth)
+        val cal = Calendar.getInstance()
+        for (receipt in receipts) {
+            cal.time = receipt.date.toDate()
+            val day = cal.get(Calendar.DAY_OF_MONTH)
+            if (day in 1..daysInMonth) daily[day - 1] += receipt.totalAmount
+        }
+        spendingChart.setData(daily, daysInMonth, today, totalBudget)
+
+        val monthShort = SimpleDateFormat("MMM", Locale.getDefault()).format(now.time)
+        chartStartLabel.text = "1 $monthShort"
+        chartEndLabel.text = "$daysInMonth $monthShort"
+        chartSummaryTextView.text = when {
+            totalBudget <= 0 -> "This month"
+            totalSpent <= totalBudget * today / daysInMonth -> "On track"
+            else -> "Ahead of pace"
+        }
+        chartSummaryTextView.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (chartSummaryTextView.text == "Ahead of pace") R.color.warning_orange else R.color.success_green
+            )
+        )
+        if (totalBudget <= 0) chartSummaryTextView.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
     }
 
     override fun onResume() {
         super.onResume()
+        // Coming back from another tab: Home is the screen showing again.
+        bottomNav.menu.findItem(R.id.nav_home)?.isChecked = true
         loadBackgroundPreference()
         loadData()
     }

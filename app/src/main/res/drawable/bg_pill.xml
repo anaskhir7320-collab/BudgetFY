@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hairline pill: filters, month selector, range options -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/surface_muted">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/card_bg" />
+            <corners android:radius="100dp" />
+            <stroke android:width="1dp" android:color="@color/stroke_strong" />
+        </shape>
+    </item>
+</ripple>

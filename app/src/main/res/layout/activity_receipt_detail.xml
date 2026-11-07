@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/surface_muted">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -20,11 +20,11 @@
                 android:id="@+id/detailToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@color/purple_700"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                android:background="@color/page_bg"
+                android:theme="@style/ThemeOverlay.App.Toolbar"
                 app:navigationIcon="?attr/homeAsUpIndicator"
                 app:title="Receipt Details"
-                app:titleTextColor="@android:color/white" />
+                app:titleTextColor="@color/text_primary" />
 
             <!-- Receipt Image Card -->
             <com.google.android.material.card.MaterialCardView
@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardElevation="0dp">
 
                 <ImageView
                     android:id="@+id/receiptImageDetail"
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -64,7 +64,7 @@
                         android:layout_height="wrap_content"
                         android:text="Receipt"
                         android:textSize="18sp"
-                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
                         android:textColor="@color/black"
                         android:layout_marginBottom="6dp" />
 
@@ -81,8 +81,8 @@
                         android:layout_height="wrap_content"
                         android:text="RM 0.00"
                         android:textSize="26sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/purple_700" />
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/accent_text" />
 
                     <TextView
                         android:id="@+id/detailDateTextView"
@@ -111,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:text="Items Purchased"
                 android:textSize="16sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="@color/black"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"

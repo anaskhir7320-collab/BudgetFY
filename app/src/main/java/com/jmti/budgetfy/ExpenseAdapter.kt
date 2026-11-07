@@ -29,28 +29,35 @@ class ExpenseAdapter(
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val receipt = receipts[position]
-        holder.bind(receipt)
+        holder.bind(receipt, isLast = position == receipts.lastIndex)
         holder.itemView.setOnClickListener { onItemClick(receipt) }
     }
 
     override fun getItemCount(): Int = receipts.size
 
     class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val storeInitialTextView: TextView = itemView.findViewById(R.id.storeInitialTextView)
         private val storeNameTextView: TextView = itemView.findViewById(R.id.storeNameTextView)
         private val totalAmountTextView: TextView = itemView.findViewById(R.id.totalAmountTextView)
         private val dateTextView: TextView = itemView.findViewById(R.id.dateTextView)
         private val itemCountTextView: TextView = itemView.findViewById(R.id.itemCountTextView)
+        private val rowDivider: View = itemView.findViewById(R.id.rowDivider)
 
-        fun bind(receipt: Receipt) {
-            storeNameTextView.text = receipt.storeName.ifEmpty { "Receipt" }
+        fun bind(receipt: Receipt, isLast: Boolean) {
+            val name = receipt.storeName.ifEmpty { "Receipt" }
+            storeNameTextView.text = name
+            storeInitialTextView.text = name.trim().firstOrNull { it.isLetterOrDigit() }
+                ?.uppercaseChar()?.toString() ?: "R"
             totalAmountTextView.text = "RM ${String.format("%.2f", receipt.totalAmount)}"
 
-            val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
             dateTextView.text = dateFormat.format(receipt.date.toDate())
 
-            // ✅ Fixed: "1 item" vs "N items"
             val count = receipt.items.size
             itemCountTextView.text = if (count == 1) "1 item" else "$count items"
+
+            // Rows share one card; the last row needs no divider under it.
+            rowDivider.visibility = if (isLast) View.GONE else View.VISIBLE
         }
     }
 }

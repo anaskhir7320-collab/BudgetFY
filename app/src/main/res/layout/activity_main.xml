@@ -12,59 +12,87 @@
         android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="140dp"
+        android:paddingBottom="150dp"
         android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp">
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <!-- ═══ HEADER: wordmark + month pill ═══ -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/brand_blue"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:title="BudgetFY"
-                app:titleTextColor="@android:color/white" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <!-- ═══════════════════════════════════════════ -->
-            <!-- TOTAL SPENT CARD                              -->
-            <!-- ═══════════════════════════════════════════ -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/greetingTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Good day"
+                        android:textAppearance="@style/TextAppearance.App.Caption" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:includeFontPadding="false"
+                        android:letterSpacing="-0.03"
+                        android:text="BudgetFY"
+                        android:textColor="@color/text_primary"
+                        android:textSize="28sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/monthPill"
+                    style="@style/Widget.App.Pill"
+                    android:layout_width="wrap_content"
+                    android:drawablePadding="6dp"
+                    android:text="November 2026"
+                    app:drawableStartCompat="@drawable/ic_calendar_small" />
+            </LinearLayout>
+
+            <!-- ═══ TOTAL SPENT CARD (kept; supports a photo background) ═══ -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/summaryCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="3dp"
-                app:strokeWidth="0dp"
+                android:layout_marginTop="18dp"
+                app:cardCornerRadius="18dp"
                 app:cardPreventCornerOverlap="true">
 
                 <FrameLayout
                     android:id="@+id/summaryFrame"
                     android:layout_width="match_parent"
-                    android:layout_height="160dp"
-                    android:clipToOutline="true"
+                    android:layout_height="176dp"
+                    android:background="@drawable/bg_total_summary"
                     android:clipChildren="true"
-                    android:background="@drawable/bg_total_summary">
+                    android:clipToOutline="true">
 
                     <ImageView
                         android:id="@+id/summaryBackgroundImage"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
                         android:adjustViewBounds="false"
                         android:contentDescription="Background"
+                        android:scaleType="centerCrop"
                         android:visibility="gone" />
 
                     <View
                         android:id="@+id/summaryOverlay"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="#AA000000"
+                        android:background="#99000000"
                         android:visibility="gone" />
 
                     <LinearLayout
@@ -72,171 +100,429 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:paddingHorizontal="20dp"
+                        android:paddingVertical="18dp">
 
                         <TextView
                             android:id="@+id/summaryTitleTextView"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Total Spent This Month"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_secondary" />
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
 
                         <TextView
                             android:id="@+id/totalSpentTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="8dp"
                             android:text="RM 0.00"
-                            android:textSize="30sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/brand_blue_dark" />
+                            android:textAppearance="@style/TextAppearance.App.Hero"
+                            android:textColor="@color/brand_blue" />
 
                         <TextView
                             android:id="@+id/totalBudgetTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="of RM 0.00 budget"
-                            android:textSize="13sp"
-                            android:textColor="@color/text_secondary" />
-
-                        <ProgressBar
-                            android:id="@+id/budgetProgressBar"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="10dp"
-                            android:layout_marginTop="14dp"
-                            android:max="100"
-                            android:progress="0"
-                            android:progressTint="@color/brand_blue"
-                            android:progressBackgroundTint="#FFFFFF" />
-
-                        <TextView
-                            android:id="@+id/budgetStatusTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="0% of budget used"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_secondary" />
+                            android:text="of RM 0.00 budget"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
 
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/budgetProgressBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="100"
+                            android:progress="0" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/budgetStatusTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="0% of budget used"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/budgetRemainingTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text=""
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
                     </LinearLayout>
-
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ALERT CARD -->
+            <!-- ═══ ALERT (shown at 80%+ of budget) ═══ -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/alertCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="10dp"
                 android:visibility="gone"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/alert_warning_bg"
+                app:cardBackgroundColor="@android:color/transparent"
                 app:strokeWidth="0dp">
 
                 <TextView
                     android:id="@+id/alertTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="14dp"
-                    android:text="⚠️ Alert message"
+                    android:background="@drawable/bg_alert_warning"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp"
+                    android:text="Alert message"
+                    android:textColor="@color/alert_warning_text"
                     android:textSize="13sp"
-                    android:textColor="@color/alert_warning_text" />
-
+                    app:drawableStartCompat="@drawable/ic_warning_outline" />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- BUDGET BREAKDOWN HEADER -->
+            <!-- ═══ STATS ROW ═══ -->
             <LinearLayout
-                android:id="@+id/categoryHeaderRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Receipts"
+                        android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                    <TextView
+                        android:id="@+id/statReceiptsValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="0"
+                        android:textAppearance="@style/TextAppearance.App.StatValue" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Daily average"
+                        android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                    <TextView
+                        android:id="@+id/statDailyAvgValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="RM 0.00"
+                        android:textAppearance="@style/TextAppearance.App.StatValue" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Left per day"
+                        android:textAppearance="@style/TextAppearance.App.StatLabel" />
+
+                    <TextView
+                        android:id="@+id/statLeftPerDayValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="RM 0.00"
+                        android:textAppearance="@style/TextAppearance.App.StatValue" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ═══ SPENDING CHART ═══ -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_trend_up" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Spending trend"
+                            android:textAppearance="@style/TextAppearance.App.Title" />
+
+                        <TextView
+                            android:id="@+id/chartSummaryTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <com.jmti.budgetfy.views.SpendingChartView
+                        android:id="@+id/spendingChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="170dp"
+                        android:layout_marginTop="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chartStartLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="1 Nov"
+                            android:textColor="@color/text_tertiary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/chartEndLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="30 Nov"
+                            android:textColor="@color/text_tertiary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <!-- Range-style toggle, like Shiny's 7D / 1M / 3M pills -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chartModeCumulative"
+                            style="@style/Widget.App.Pill"
+                            android:layout_width="wrap_content"
+                            android:background="@drawable/bg_pill_selected"
+                            android:text="Running total"
+                            android:textColor="@android:color/white" />
+
+                        <TextView
+                            android:id="@+id/chartModeDaily"
+                            style="@style/Widget.App.Pill"
+                            android:layout_width="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_pill_plain"
+                            android:text="Per day"
+                            android:textColor="@color/accent_text" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ═══ BUDGET BY CATEGORY (collapsible) ═══ -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/categoryHeaderRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_nav_budget"
+                            app:tint="@color/accent_text" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Budget by category"
+                            android:textAppearance="@style/TextAppearance.App.Title" />
+
+                        <ImageView
+                            android:id="@+id/collapseArrow"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:contentDescription="Toggle categories"
+                            android:rotation="0"
+                            android:src="@drawable/ic_chevron_down" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/categoryRecyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:paddingBottom="6dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ═══ RECENT TRANSACTIONS ═══ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="10dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="20dp"
-                android:paddingBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Budget Breakdown by Category"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary" />
+                    android:text="Recent transactions"
+                    android:textAppearance="@style/TextAppearance.App.Title" />
 
-                <ImageView
-                    android:id="@+id/collapseArrow"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_down"
-                    android:contentDescription="Toggle categories"
-                    android:rotation="0" />
-
+                <TextView
+                    android:id="@+id/seeAllTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:gravity="center"
+                    android:paddingHorizontal="4dp"
+                    android:text="See all"
+                    android:textColor="@color/accent_text"
+                    android:textSize="13sp" />
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/categoryRecyclerView"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="4dp"
-                android:visibility="gone" />
+                android:layout_height="wrap_content">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Recent Transactions"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="10dp" />
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="4dp"
-                android:layout_marginBottom="20dp" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/emptyTransactionsText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingVertical="28dp"
+                        android:text="No receipts yet this month.\nTap Scan to add your first one."
+                        android:textColor="@color/text_tertiary"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <!-- ═══ SCAN BUTTON ═══ -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabCapture"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="wrap_content"
+        android:layout_height="52dp"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="100dp"
-        android:src="@drawable/ic_camera_white"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="84dp"
+        android:contentDescription="Scan receipt"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0"
+        android:text="Scan receipt"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
         app:backgroundTint="@color/brand_blue"
-        app:fabCustomSize="60dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent"
-        app:elevation="6dp"
-        app:rippleColor="@color/brand_blue_light"
-        android:contentDescription="Capture receipt" />
+        app:elevation="3dp"
+        app:icon="@drawable/ic_scan"
+        app:iconTint="@android:color/white"
+        app:rippleColor="@color/brand_blue_dark"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Pill" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigationView"
+    <!-- ═══ BOTTOM NAV with hairline top border ═══ -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@android:color/white"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/bottom_nav_tint"
-        app:itemTextColor="@color/bottom_nav_tint"
-        app:elevation="8dp" />
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/stroke" />
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigationView"
+            style="@style/Widget.App.BottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:menu="@menu/bottom_nav_menu" />
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

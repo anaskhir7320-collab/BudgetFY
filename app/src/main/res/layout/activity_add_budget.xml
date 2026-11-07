@@ -14,11 +14,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/brand_blue"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            android:background="@color/page_bg"
+            android:theme="@style/ThemeOverlay.App.Toolbar"
             app:navigationIcon="?attr/homeAsUpIndicator"
             app:title="Add Budget"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@color/text_primary" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:text="Set Budget Limit"
                 android:textSize="22sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="@color/text_primary" />
 
             <TextView
@@ -46,8 +46,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
                 app:strokeWidth="1dp"
                 app:strokeColor="@color/brand_blue"
                 app:cardBackgroundColor="@color/brand_blue_light">
@@ -63,7 +63,7 @@
                         android:layout_height="wrap_content"
                         android:text="💰 Overall Budget"
                         android:textSize="15sp"
-                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
                         android:textColor="@color/brand_blue_dark" />
 
                     <TextView
@@ -78,7 +78,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.App.TextInput"
                         app:boxBackgroundColor="@android:color/white">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -108,7 +108,7 @@
                 android:layout_marginTop="24dp"
                 android:text="📊 Category Budget"
                 android:textSize="15sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="@color/text_primary" />
 
             <TextView
@@ -123,7 +123,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                style="@style/Widget.App.TextInput.Dropdown">
 
                 <AutoCompleteTextView
                     android:id="@+id/categoryDropdown"
@@ -137,7 +137,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.App.TextInput">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/limitEditText"

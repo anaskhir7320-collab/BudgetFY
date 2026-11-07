@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:padding="6dp"
     android:layout_margin="4dp"
-    android:background="#F0F8FF">
+    android:background="@color/accent_soft">
 
     <!-- Month Header -->
     <TextView
@@ -15,7 +15,7 @@
         android:text="Jan"
         android:textSize="12sp"
         android:textColor="@color/text_primary"
-        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
         android:layout_marginBottom="4dp" />
 
     <!-- Day of week headers (S M T W T F S) -->

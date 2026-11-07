@@ -104,7 +104,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val scan = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
             val pageUri = scan?.pages?.firstOrNull()?.imageUri
-            if (pageUri != null) loadReceiptImage(pageUri, "Receipt scanned! Tap Process.")
+            if (pageUri != null) loadReceiptImage(pageUri, "Receipt scanned! Tap Read.")
         }
     }
 
@@ -112,13 +112,13 @@ class CaptureReceiptActivity : AppCompatActivity() {
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) photoUri?.let { loadReceiptImage(it, "Photo captured! Tap Process.") }
+        if (success) photoUri?.let { loadReceiptImage(it, "Photo captured! Tap Read.") }
     }
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { loadReceiptImage(it, "Image loaded! Tap Process.") }
+        uri?.let { loadReceiptImage(it, "Image loaded! Tap Read.") }
     }
 
     private fun loadReceiptImage(uri: Uri, message: String) {

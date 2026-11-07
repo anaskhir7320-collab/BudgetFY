@@ -4,9 +4,10 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
+import android.graphics.drawable.GradientDrawable
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.jmti.budgetfy.R
 import com.jmti.budgetfy.models.BudgetCategory
 
@@ -35,7 +36,7 @@ class CategoryBudgetAdapter : RecyclerView.Adapter<CategoryBudgetAdapter.Categor
         private val colorView: View = itemView.findViewById(R.id.categoryColorView)
         private val nameTextView: TextView = itemView.findViewById(R.id.categoryNameTextView)
         private val amountTextView: TextView = itemView.findViewById(R.id.categoryAmountTextView)
-        private val progressBar: ProgressBar = itemView.findViewById(R.id.categoryProgressBar)
+        private val progressBar: LinearProgressIndicator = itemView.findViewById(R.id.categoryProgressBar)
         private val statusTextView: TextView = itemView.findViewById(R.id.categoryStatusTextView)
 
         fun bind(category: BudgetCategory) {
@@ -55,13 +56,16 @@ class CategoryBudgetAdapter : RecyclerView.Adapter<CategoryBudgetAdapter.Categor
                 percentage >= 80 -> Color.parseColor("#FF9800")    // Orange - warning
                 else -> category.color                              // Normal color
             }
-            colorView.setBackgroundColor(color)
-            progressBar.progressTintList = android.content.res.ColorStateList.valueOf(color)
+            colorView.background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(color)
+            }
+            progressBar.setIndicatorColor(color)
 
             // Status text
             statusTextView.text = when {
-                percentage >= 100 -> "⚠️ Over budget by RM ${String.format("%.2f", category.spent - category.limit)}"
-                percentage >= 80 -> "⚠️ $percentage% used - almost at limit!"
+                percentage >= 100 -> "Over budget by RM ${String.format("%.2f", category.spent - category.limit)}"
+                percentage >= 80 -> "$percentage% used · almost at limit"
                 else -> "$percentage% used"
             }
 

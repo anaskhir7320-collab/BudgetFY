@@ -40,7 +40,7 @@
                 android:layout_weight="1"
                 android:text="Edit profile"
                 android:textSize="17sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="@color/text_primary"
                 android:gravity="center" />
 
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:text="Save"
                 android:textSize="15sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="#B0B0B0"
                 android:padding="10dp"
                 android:clickable="true"
@@ -115,7 +115,7 @@
             app:cardElevation="0dp"
             app:strokeWidth="1dp"
             app:strokeColor="@color/divider"
-            app:cardBackgroundColor="#F5F5F5"
+            app:cardBackgroundColor="@color/surface_muted"
             android:foreground="?attr/selectableItemBackground">
 
             <TextView
@@ -138,7 +138,7 @@
             android:layout_marginTop="24dp"
             android:text="Budget Card Edit"
             android:textSize="15sp"
-            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
             android:textColor="@color/text_primary" />
 
         <!-- Standard Card toggle -->

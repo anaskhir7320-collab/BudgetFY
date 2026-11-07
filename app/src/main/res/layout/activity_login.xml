@@ -5,32 +5,42 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center"
-    android:background="@color/white">
+    android:gravity="center_vertical"
+    android:background="@color/page_bg">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome Back"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="@color/purple_700"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="28dp"
+        android:fontFamily="sans-serif-black"
+        android:letterSpacing="-0.03"
+        android:text="BudgetFY"
+        android:textColor="@color/text_primary"
+        android:textSize="34sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Login to your account"
+        android:text="Welcome back"
+        android:textSize="22sp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="6dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Log in to keep track of your spending"
         android:textSize="14sp"
-        android:textColor="@color/gray"
-        android:layout_marginBottom="32dp"/>
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="28dp"/>
 
     <!-- Email -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/Widget.App.TextInput">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEditText"
@@ -45,7 +55,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget.App.TextInput"
         app:passwordToggleEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -60,10 +70,8 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Login"
-        android:textSize="16sp"
-        app:cornerRadius="12dp"
+        android:layout_height="52dp"
+        android:text="Log in"
         android:layout_marginBottom="16dp"/>
 
     <!-- Progress Bar -->
@@ -79,8 +87,10 @@
         android:id="@+id/registerLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:padding="8dp"
         android:text="Don't have an account? Register"
-        android:textColor="@color/purple_700"
+        android:textColor="@color/accent_text"
         android:textSize="14sp"
         android:clickable="true"
         android:focusable="true"/>

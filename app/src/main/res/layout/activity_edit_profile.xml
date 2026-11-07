@@ -1,242 +1,503 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/page_bg"
-    android:fillViewport="true">
+    android:orientation="vertical">
 
+    <!-- ═══ TOP BAR: Cancel | Edit profile | Save ═══ -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/page_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp">
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- TOP BAR: Cancel | Edit profile | Save           -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@color/brand_blue_light"
-            android:paddingHorizontal="12dp">
-
-            <TextView
-                android:id="@+id/cancelButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cancel"
-                android:textSize="15sp"
-                android:textColor="#F44336"
-                android:padding="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Edit profile"
-                android:textSize="17sp"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="@color/text_primary"
-                android:gravity="center" />
-
-            <TextView
-                android:id="@+id/saveButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Save"
-                android:textSize="15sp"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="#B0B0B0"
-                android:padding="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:enabled="false"
-                android:background="?attr/selectableItemBackground" />
-        </LinearLayout>
-
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- PROFILE PICTURE                                  -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <FrameLayout
-            android:id="@+id/profilePicContainer"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="24dp"
-            android:clickable="true"
-            android:focusable="true">
-
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/editProfileAvatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/white"
-                android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Circle" />
-
-            <!-- Camera icon overlay (bottom-right) -->
-            <ImageView
-                android:id="@+id/cameraOverlayIcon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="bottom|end"
-                android:background="@drawable/bg_camera_overlay"
-                android:padding="6dp"
-                android:src="@drawable/ic_camera_white"
-                android:contentDescription="Edit profile picture" />
-        </FrameLayout>
-
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- DISPLAY NAME                                     -->
-        <!-- ═══════════════════════════════════════════════ -->
         <TextView
+            android:id="@+id/cancelButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="24dp"
-            android:text="Display name"
-            android:textSize="13sp"
-            android:textColor="@color/text_secondary" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/displayNameCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="6dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/divider"
-            app:cardBackgroundColor="@color/surface_muted"
-            android:foreground="?attr/selectableItemBackground">
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="Cancel"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp" />
 
-            <TextView
-                android:id="@+id/displayNameValueText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="14dp"
-                android:text="Your name"
-                android:textSize="15sp"
-                android:textColor="@color/text_primary" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- BUDGET CARD EDIT                                 -->
-        <!-- ═══════════════════════════════════════════════ -->
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="24dp"
-            android:text="Budget Card Edit"
-            android:textSize="15sp"
+            android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
-            android:textColor="@color/text_primary" />
+            android:gravity="center"
+            android:text="Edit profile"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp" />
 
-        <!-- Standard Card toggle -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Standard Card"
-                android:textSize="14sp"
-                android:textColor="@color/text_primary" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchStandard"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true" />
-        </LinearLayout>
-
-        <!-- Expanded card toggle -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Expanded card"
-                android:textSize="14sp"
-                android:textColor="@color/text_primary" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchExpanded"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="false" />
-        </LinearLayout>
-
-        <!-- Card preview box -->
         <TextView
+            android:id="@+id/saveButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="16dp"
-            android:text="Card preview"
-            android:textSize="13sp"
-            android:textColor="@color/text_secondary" />
-
-        <FrameLayout
-            android:id="@+id/cardPreviewBox"
-            android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="6dp"
-            android:clipToOutline="true"
-            android:background="@drawable/bg_total_summary"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:id="@+id/cardPreviewImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:contentDescription="Card preview"
-                android:visibility="gone" />
-
-            <View
-                android:id="@+id/cardPreviewOverlay"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#AA000000"
-                android:visibility="gone" />
-
-            <ImageView
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:layout_gravity="top|end"
-                android:layout_margin="10dp"
-                android:src="@drawable/ic_image_add"
-                android:contentDescription="Edit card image" />
-        </FrameLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp" />
-
+            android:enabled="false"
+            android:focusable="true"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="Save"
+            android:textColor="@color/text_tertiary"
+            android:textSize="15sp" />
     </LinearLayout>
-</ScrollView>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="32dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp">
+
+            <!-- ═══ PROFILE PHOTO ═══ -->
+            <FrameLayout
+                android:id="@+id/profilePicContainer"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/editProfileAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/surface_muted"
+                    android:padding="1dp"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Circle"
+                    app:strokeColor="@color/stroke_strong"
+                    app:strokeWidth="1dp" />
+
+                <ImageView
+                    android:id="@+id/cameraOverlayIcon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_camera_overlay"
+                    android:contentDescription="Edit profile picture"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_camera_white" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/changePhotoText"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_gravity="center_horizontal"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:paddingHorizontal="8dp"
+                android:text="Change photo"
+                android:textColor="@color/accent_text"
+                android:textSize="14sp" />
+
+            <!-- ═══ PROFILE ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="Profile"
+                android:textAppearance="@style/TextAppearance.App.Title" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/displayNameCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Display name"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/displayNameValueText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:text="Your name"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_chevron_right" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ═══ SPENDING CARD ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Spending card"
+                android:textAppearance="@style/TextAppearance.App.Title" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="How the Total Spent card looks on your home screen"
+                android:textAppearance="@style/TextAppearance.App.Caption" />
+
+            <!-- Size: Standard | Expanded -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_segment"
+                android:orientation="horizontal"
+                android:padding="3dp">
+
+                <TextView
+                    android:id="@+id/sizeStandardPill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill_selected"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:text="Standard"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/sizeExpandedPill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill_plain"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:text="Expanded"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Live preview: looks like the real home card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardCornerRadius="18dp">
+
+                <FrameLayout
+                    android:id="@+id/cardPreviewBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="176dp"
+                    android:background="@drawable/bg_total_summary"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/cardPreviewImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Card preview"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <View
+                        android:id="@+id/cardPreviewOverlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#99000000"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="20dp"
+                        android:paddingVertical="18dp">
+
+                        <TextView
+                            android:id="@+id/previewTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total Spent This Month"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/previewAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="RM 267.63"
+                            android:textAppearance="@style/TextAppearance.App.Hero"
+                            android:textColor="@color/brand_blue" />
+
+                        <TextView
+                            android:id="@+id/previewBudget"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="of RM 400.00 budget"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/previewProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="100"
+                            android:progress="66" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="22dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="12dp"
+                        android:background="@drawable/bg_pill"
+                        android:gravity="center"
+                        android:paddingHorizontal="10dp"
+                        android:text="Preview"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Own photo actions -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/uploadCardButton"
+                    style="@style/Widget.App.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:minHeight="44dp"
+                    android:text="Upload your own"
+                    android:textSize="13sp"
+                    app:icon="@drawable/ic_gallery"
+                    app:iconGravity="textStart"
+                    app:iconPadding="6dp"
+                    app:iconSize="18dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/removeCardButton"
+                    style="@style/Widget.App.Button.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="6dp"
+                    android:minHeight="44dp"
+                    android:paddingHorizontal="18dp"
+                    android:text="Remove"
+                    android:textColor="@color/danger_red"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- ═══ READY-MADE BACKGROUNDS (2 × 2) ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:text="Ready-made backgrounds"
+                android:textAppearance="@style/TextAppearance.App.Title" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Tap one to use it"
+                android:textAppearance="@style/TextAppearance.App.Caption" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/preset1"
+                    android:layout_width="0dp"
+                    android:layout_height="98dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/preset1Image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Background 1"
+                        android:padding="1dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/card_preset_1"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize12"
+                        app:strokeColor="@color/stroke"
+                        app:strokeWidth="1dp" />
+
+                    <ImageView
+                        android:id="@+id/preset1Check"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="7dp"
+                        android:background="@drawable/bg_check_badge"
+                        android:contentDescription="Selected"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_check"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/preset2"
+                    android:layout_width="0dp"
+                    android:layout_height="98dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/preset2Image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Background 2"
+                        android:padding="1dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/card_preset_2"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize12"
+                        app:strokeColor="@color/stroke"
+                        app:strokeWidth="1dp" />
+
+                    <ImageView
+                        android:id="@+id/preset2Check"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="7dp"
+                        android:background="@drawable/bg_check_badge"
+                        android:contentDescription="Selected"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_check"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/preset3"
+                    android:layout_width="0dp"
+                    android:layout_height="98dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/preset3Image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Background 3"
+                        android:padding="1dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/card_preset_3"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize12"
+                        app:strokeColor="@color/stroke"
+                        app:strokeWidth="1dp" />
+
+                    <ImageView
+                        android:id="@+id/preset3Check"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="7dp"
+                        android:background="@drawable/bg_check_badge"
+                        android:contentDescription="Selected"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_check"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/preset4"
+                    android:layout_width="0dp"
+                    android:layout_height="98dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/preset4Image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Background 4"
+                        android:padding="1dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/card_preset_4"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize12"
+                        app:strokeColor="@color/stroke"
+                        app:strokeWidth="1dp" />
+
+                    <ImageView
+                        android:id="@+id/preset4Check"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="7dp"
+                        android:background="@drawable/bg_check_badge"
+                        android:contentDescription="Selected"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_check"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

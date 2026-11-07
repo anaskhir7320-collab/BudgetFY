@@ -40,6 +40,11 @@ android {
             "String", "GEMINI_FALLBACK_MODEL",
             "\"${localProps.getProperty("GEMINI_FALLBACK_MODEL", "gemini-flash-lite-latest")}\""
         )
+        // minimal / low / medium / high. Receipts read fine at "minimal", and it's much faster.
+        buildConfigField(
+            "String", "GEMINI_THINKING_LEVEL",
+            "\"${localProps.getProperty("GEMINI_THINKING_LEVEL", "minimal")}\""
+        )
     }
 
     buildFeatures {

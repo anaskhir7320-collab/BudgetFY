@@ -24,7 +24,8 @@ import java.net.URL
 class GeminiReceiptExtractor(
     private val apiKey: String = BuildConfig.GEMINI_API_KEY,
     private val model: String = BuildConfig.GEMINI_MODEL,
-    private val fallbackModel: String = BuildConfig.GEMINI_FALLBACK_MODEL
+    private val fallbackModel: String = BuildConfig.GEMINI_FALLBACK_MODEL,
+    private val thinkingLevel: String = BuildConfig.GEMINI_THINKING_LEVEL
 ) {
 
     data class Item(
@@ -52,34 +53,67 @@ class GeminiReceiptExtractor(
             get() = (tax ?: 0.0) + (serviceCharge ?: 0.0) + (rounding ?: 0.0) - (discount ?: 0.0)
     }
 
+    /** [result] is null when reading failed; [error] then says why. */
+    data class Outcome(val result: Result?, val error: String?)
+
     val isConfigured: Boolean get() = apiKey.isNotBlank()
 
-    @Volatile
-    var lastError: String? = null
-        private set
-
-    fun extract(bitmap: Bitmap, ocrText: String, categories: List<String>): Result? {
-        lastError = null
-        if (!isConfigured) {
-            lastError = "No GEMINI_API_KEY in local.properties"
-            return null
-        }
+    fun extract(bitmap: Bitmap, ocrText: String, categories: List<String>): Outcome {
+        if (!isConfigured) return Outcome(null, "No GEMINI_API_KEY in local.properties")
         return try {
             val request = buildRequest(bitmap, ocrText, categories)
-            val responseText = try {
-                postWithRetry(model, request)
-            } catch (e: HttpError) {
-                // Main model still overloaded after retries: use the lighter model.
-                if (!e.isBusy || fallbackModel.isBlank() || fallbackModel == model) throw e
-                Log.w(TAG, "$model busy, falling back to $fallbackModel")
-                postWithRetry(fallbackModel, request)
+
+            // Skip a model whose daily/minute quota is known to be used up, so
+            // the user doesn't wait for a request that will certainly fail.
+            val now = System.currentTimeMillis()
+            val models = listOf(model, fallbackModel)
+                .filter { it.isNotBlank() }
+                .distinct()
+            val usable = models.filter { (blockedUntil[it] ?: 0L) <= now }.ifEmpty { models }
+
+            var lastFailure: HttpError? = null
+            for (m in usable) {
+                try {
+                    val started = System.currentTimeMillis()
+                    val result = parseResult(send(m, request))
+                    Log.d(TAG, "$m answered in ${System.currentTimeMillis() - started} ms")
+                    return Outcome(result, null)
+                } catch (e: HttpError) {
+                    lastFailure = e
+                    e.quotaRetryDelayMs?.let { blockedUntil[m] = System.currentTimeMillis() + it }
+                    if (!e.isBusy) throw e
+                    Log.w(TAG, "$m unavailable (HTTP ${e.code}), trying next model")
+                }
             }
-            parseResult(responseText)
+            throw lastFailure ?: IllegalStateException("No Gemini model configured")
         } catch (e: Exception) {
-            lastError = e.message ?: e.javaClass.simpleName
-            Log.w(TAG, "Gemini extraction failed: $lastError")
-            null
+            val message = e.message ?: e.javaClass.simpleName
+            Log.w(TAG, "Gemini extraction failed: $message")
+            Outcome(null, message)
         }
+    }
+
+    /**
+     * Sends with the configured thinking level. Receipts don't need deep
+     * reasoning, and "minimal" thinking roughly halves the response time.
+     * A model that rejects the setting is remembered and sent without it.
+     */
+    private fun send(model: String, request: JsonObject): String {
+        if (thinkingLevel.isNotBlank() && model !in thinkingUnsupported) {
+            val withThinking = request.deepCopy().apply {
+                getAsJsonObject("generationConfig").add("thinkingConfig", JsonObject().apply {
+                    addProperty("thinkingLevel", thinkingLevel)
+                })
+            }
+            try {
+                return postWithRetry(model, withThinking)
+            } catch (e: HttpError) {
+                if (e.code != 400) throw e
+                Log.w(TAG, "$model rejected thinkingLevel=$thinkingLevel, sending without it")
+                thinkingUnsupported.add(model)
+            }
+        }
+        return postWithRetry(model, request)
     }
 
     // ── Request ────────────────────────────────────────────────────────────
@@ -185,7 +219,7 @@ class GeminiReceiptExtractor(
         // Gemini reads receipts well at ~2000px; larger only adds upload time.
         val scaled = ImageLoader.scaleDown(bitmap, MAX_IMAGE_SIDE)
         val out = ByteArrayOutputStream()
-        scaled.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        scaled.compress(Bitmap.CompressFormat.JPEG, 85, out)
         return Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
     }
 
@@ -193,6 +227,23 @@ class GeminiReceiptExtractor(
 
     private class HttpError(val code: Int, message: String) : IllegalStateException(message) {
         val isBusy: Boolean get() = code == 429 || code == 500 || code == 503
+
+        /**
+         * For "quota exceeded" (429), how long until the quota resets, parsed
+         * from "Please retry in 5m14.49s". Retrying sooner is pointless.
+         */
+        val quotaRetryDelayMs: Long?
+            get() {
+                if (code != 429 || message?.contains("quota", ignoreCase = true) != true) return null
+                val match = Regex("retry in (?:(\\d+)h)?(?:(\\d+)m)?(?:([\\d.]+)s)?")
+                    .find(message.orEmpty())
+                val seconds = match?.let {
+                    (it.groupValues[1].toLongOrNull() ?: 0L) * 3600 +
+                            (it.groupValues[2].toLongOrNull() ?: 0L) * 60 +
+                            (it.groupValues[3].toDoubleOrNull() ?: 0.0).toLong()
+                } ?: 0L
+                return maxOf(seconds, 60L) * 1000
+            }
     }
 
     /**
@@ -206,7 +257,7 @@ class GeminiReceiptExtractor(
             try {
                 return post(model, body)
             } catch (e: HttpError) {
-                if (!e.isBusy || attempt >= delaysMs.size) throw e
+                if (!e.isBusy || e.quotaRetryDelayMs != null || attempt >= delaysMs.size) throw e
                 Log.w(TAG, "Gemini busy (HTTP ${e.code}), retrying in ${delaysMs[attempt]} ms")
                 Thread.sleep(delaysMs[attempt])
                 attempt++
@@ -295,5 +346,10 @@ class GeminiReceiptExtractor(
     companion object {
         private const val TAG = "GEMINI"
         private const val MAX_IMAGE_SIDE = 2048
+
+        // Shared across screens so a used-up quota is remembered for the app session.
+        private val blockedUntil = java.util.concurrent.ConcurrentHashMap<String, Long>()
+        private val thinkingUnsupported: MutableSet<String> =
+            java.util.concurrent.ConcurrentHashMap.newKeySet()
     }
 }

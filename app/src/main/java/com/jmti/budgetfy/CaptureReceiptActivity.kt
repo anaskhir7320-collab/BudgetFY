@@ -35,7 +35,11 @@ import com.jmti.budgetfy.utils.OCRHelper
 import com.jmti.budgetfy.utils.ReceiptParser
 import com.jmti.budgetfy.utils.ReceiptValidator
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -61,6 +65,9 @@ class CaptureReceiptActivity : AppCompatActivity() {
     private val receiptParser = ReceiptParser()
     private val categorizationEngine = CategorizationEngine()
     private val geminiExtractor = GeminiReceiptExtractor()
+
+    private val workScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var analysisJob: Deferred<Analysis>? = null
 
     // Same scanner Receiptly uses: finds the receipt edges, crops, flattens
     // perspective and cleans shadows before OCR ever sees the image.
@@ -125,6 +132,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
             capturedBitmap = bitmap
             imageView.setImageBitmap(bitmap)
             processButton.isEnabled = true
+            startAnalysis(bitmap)
             savedImagePath = saveImageToInternal(bitmap)
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
@@ -325,28 +333,68 @@ class CaptureReceiptActivity : AppCompatActivity() {
         } catch (e: Exception) { "" }
     }
 
+    /** OCR + Gemini result for one image, computed once and reused by Process. */
+    private class Analysis(
+        val ocr: OCRHelper.OcrOutput,
+        val ai: GeminiReceiptExtractor.Result?,
+        val aiError: String?
+    )
+
+    /**
+     * Starts reading the receipt in the background as soon as an image is
+     * loaded, so most of the work is already done when the user taps Process.
+     */
+    private fun startAnalysis(bitmap: Bitmap) {
+        analysisJob?.cancel()
+        analysisJob = workScope.async { analyzeReceipt(bitmap) }
+    }
+
+    private suspend fun analyzeReceipt(bitmap: Bitmap): Analysis {
+        val started = System.currentTimeMillis()
+        val ocr = ocrHelper.recognize(bitmap)
+        Log.d("CAPTURE", "OCR took ${System.currentTimeMillis() - started} ms")
+
+        // 1) Gemini reads the image (OCR text as a hint).
+        // 2) If there's no key, no network or no items, Process falls back to the on-device parser.
+        if (!geminiExtractor.isConfigured) return Analysis(ocr, null, null)
+        val outcome = geminiExtractor.extract(bitmap, ocr.layoutText, categorizationEngine.getCategories())
+        Log.d("CAPTURE", "Analysis took ${System.currentTimeMillis() - started} ms")
+        val error = when {
+            outcome.result == null -> outcome.error
+            outcome.result.items.isEmpty() -> "no items found"
+            else -> null
+        }
+        return Analysis(ocr, outcome.result, error)
+    }
+
+    override fun onDestroy() {
+        workScope.cancel()
+        super.onDestroy()
+    }
+
     private fun processReceipt() {
         val bitmap = capturedBitmap ?: return
         processButton.isEnabled = false
         progressBar.visibility = View.VISIBLE
 
-        CoroutineScope(Dispatchers.IO).launch {
+        // Usually already running (started when the image loaded).
+        val job = analysisJob?.takeUnless { it.isCancelled }
+            ?: workScope.async { analyzeReceipt(bitmap) }.also { analysisJob = it }
+
+        workScope.launch {
             try {
-                val ocr = ocrHelper.recognize(bitmap)
+                val analysis = job.await()
+                val ocr = analysis.ocr
+                val ai = analysis.ai
                 val categories = categorizationEngine.getCategories()
 
-                // ✅ Reload avoid patterns from Firestore (in case user deleted items in other sessions)
-                val freshAvoids = firebaseRepo.getAvoidKeywords(threshold = 2L)
-                avoidPatterns = freshAvoids
-                Log.d("CAPTURE", "Applying ${freshAvoids.size} avoid patterns")
-
-                // 1) Gemini reads the image (OCR text as a hint).
-                // 2) If there's no key, no network or no items, fall back to the on-device parser.
-                val ai = if (geminiExtractor.isConfigured) {
-                    geminiExtractor.extract(bitmap, ocr.layoutText, categories)
-                } else null
-
                 val usedAi = ai != null && ai.items.isNotEmpty()
+
+                // Avoid patterns only matter for the on-device parser, so the
+                // Firestore round trip is skipped when Gemini succeeded.
+                val freshAvoids = if (usedAi) avoidPatterns else {
+                    firebaseRepo.getAvoidKeywords(threshold = 2L).also { avoidPatterns = it }
+                }
                 val rawItems: List<ReceiptItem>
                 val detectedStore: String
                 val receiptTotal: Double?
@@ -383,9 +431,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 }
 
                 val check = ReceiptValidator.check(correctedItems, receiptTotal, extras)
-                val aiError = if (geminiExtractor.isConfigured && !usedAi) {
-                    geminiExtractor.lastError ?: "no items found"
-                } else null
+                val aiError = analysis.aiError
 
                 withContext(Dispatchers.Main) {
                     extractedItems.clear()

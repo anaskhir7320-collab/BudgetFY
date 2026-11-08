@@ -9,6 +9,7 @@ import android.text.InputType
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.IntentSenderRequest
@@ -131,6 +132,8 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 return
             }
             capturedBitmap = bitmap
+            // Placeholder uses fitCenter; real photos fill the frame.
+            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
             imageView.setImageBitmap(bitmap)
             processButton.isEnabled = true
             startAnalysis(bitmap)

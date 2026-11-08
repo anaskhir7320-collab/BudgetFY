@@ -21,9 +21,11 @@ import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.utils.DialogForm
+import com.jmti.budgetfy.utils.ProfileSync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EditProfileActivity : AppCompatActivity() {
 
@@ -60,6 +62,8 @@ class EditProfileActivity : AppCompatActivity() {
     private var currentCardUri: String? = null
     private var cardMode: String = "standard"
     private var hasChanges = false
+    private var avatarChanged = false
+    private var cardChanged = false
 
     private val avatarPickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -70,6 +74,7 @@ class EditProfileActivity : AppCompatActivity() {
             } catch (_: Exception) { }
             currentAvatarUri = it.toString()
             editProfileAvatar.setImageURI(it)
+            avatarChanged = true
             markChanged()
         }
     }
@@ -212,6 +217,7 @@ class EditProfileActivity : AppCompatActivity() {
     private fun setCardBackground(uri: String?) {
         if (uri == currentCardUri) return
         currentCardUri = uri
+        cardChanged = true
         updateCardPreview()
         markChanged()
     }
@@ -273,6 +279,7 @@ class EditProfileActivity : AppCompatActivity() {
             dialog.dismiss()
             currentAvatarUri = null
             editProfileAvatar.setImageDrawable(null)
+            avatarChanged = true
             markChanged()
         }
         view.findViewById<View>(R.id.optionCancel).setOnClickListener { dialog.dismiss() }
@@ -314,31 +321,33 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun saveChanges() {
-        prefs.edit().apply {
-            putString("display_name", currentDisplayName)
-            if (currentAvatarUri != null) putString("profile_avatar_uri", currentAvatarUri)
-            else remove("profile_avatar_uri")
-            putString("card_mode", cardMode)
-            if (currentCardUri != null) putString("card_bg_uri", currentCardUri)
-            else remove("card_bg_uri")
-            apply()
-        }
-
-        // Sync display name to Firebase
+        saveButton.isEnabled = false
         val userId = firebaseRepo.getCurrentUser()?.uid
-        if (userId != null) {
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                        .collection("users")
-                        .document(userId)
-                        .update(mapOf("displayName" to currentDisplayName))
-                } catch (_: Exception) { }
+        CoroutineScope(Dispatchers.IO).launch {
+            // Copies picked images into app storage and backs everything up to
+            // Firestore, so the photo and card survive reinstalling the app.
+            val (avatar, card) = ProfileSync.saveProfile(
+                this@EditProfileActivity, userId,
+                displayName = currentDisplayName,
+                avatarUri = currentAvatarUri, avatarChanged = avatarChanged,
+                cardMode = cardMode,
+                cardUri = currentCardUri, cardChanged = cardChanged
+            )
+            prefs.edit().apply {
+                putString(ProfileSync.KEY_NAME, currentDisplayName)
+                if (avatar != null) putString(ProfileSync.KEY_AVATAR, avatar)
+                else remove(ProfileSync.KEY_AVATAR)
+                putString(ProfileSync.KEY_CARD_MODE, cardMode)
+                if (card != null) putString(ProfileSync.KEY_CARD_BG, card)
+                else remove(ProfileSync.KEY_CARD_BG)
+                apply()
+            }
+            withContext(Dispatchers.Main) {
+                if (isFinishing || isDestroyed) return@withContext
+                Toast.makeText(this@EditProfileActivity, "Profile updated", Toast.LENGTH_SHORT).show()
+                finish()
             }
         }
-
-        Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show()
-        finish()
     }
 
     private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()

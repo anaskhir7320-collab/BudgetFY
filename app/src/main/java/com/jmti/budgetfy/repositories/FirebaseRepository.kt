@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.jmti.budgetfy.models.Budget
@@ -19,6 +20,11 @@ import java.util.Date
 import java.util.Locale
 
 class FirebaseRepository {
+
+    companion object {
+        /** Receipt photos, one document per receipt, keyed by receipt id. */
+        private const val RECEIPT_IMAGES = "receipt_images"
+    }
 
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
@@ -216,10 +222,71 @@ class FirebaseRepository {
 
     // ==================== RECEIPTS ====================
 
-    suspend fun saveReceipt(userId: String, receipt: Receipt) {
-        firestore.collection("receipts").document().set(receipt).await()
+    /**
+     * Saves the receipt. When [imageJpeg] is given, the photo is stored in
+     * Firestore too (receipt_images/{receiptId}) so it survives uninstalling
+     * the app. If the photo upload fails, the receipt is still saved.
+     */
+    suspend fun saveReceipt(userId: String, receipt: Receipt, imageJpeg: ByteArray? = null) {
+        val ref = firestore.collection("receipts").document()
+        var toSave = receipt
+        if (imageJpeg != null) {
+            try {
+                firestore.collection(RECEIPT_IMAGES).document(ref.id).set(
+                    mapOf(
+                        "userId" to userId,
+                        "image" to Blob.fromBytes(imageJpeg),
+                        "createdAt" to System.currentTimeMillis()
+                    )
+                ).await()
+                toSave = receipt.copy(cloudImage = true)
+            } catch (e: Exception) {
+                Log.e("FirebaseRepo", "Receipt photo upload failed: ${e.message}")
+            }
+        }
+        ref.set(toSave).await()
         for (item in receipt.items) {
             updateBudgetSpent(userId, item.category, item.price)
+        }
+    }
+
+    /** Returns the photo saved in Firestore for this receipt, or null. */
+    suspend fun getReceiptImage(receiptId: String): ByteArray? {
+        return try {
+            firestore.collection(RECEIPT_IMAGES).document(receiptId).get().await()
+                .getBlob("image")?.toBytes()
+        } catch (e: Exception) {
+            Log.e("FirebaseRepo", "getReceiptImage error: ${e.message}")
+            null
+        }
+    }
+
+    private suspend fun deleteReceiptImage(receiptId: String) {
+        try {
+            firestore.collection(RECEIPT_IMAGES).document(receiptId).delete().await()
+        } catch (e: Exception) {
+            Log.e("FirebaseRepo", "deleteReceiptImage error: ${e.message}")
+        }
+    }
+
+    /**
+     * Deletes Firestore photos older than [maxAgeDays] to stay inside the free
+     * quota. The receipt itself (store, items, amounts) is kept.
+     * Returns how many photos were removed.
+     */
+    suspend fun cleanupOldReceiptImages(userId: String, maxAgeDays: Int = 90): Int {
+        return try {
+            val cutoff = System.currentTimeMillis() - maxAgeDays * 24L * 60 * 60 * 1000
+            val old = getReceipts(userId).filter { it.cloudImage && it.createdAt < cutoff }
+            for (r in old) {
+                deleteReceiptImage(r.id)
+                firestore.collection("receipts").document(r.id)
+                    .update("cloudImage", false).await()
+            }
+            old.size
+        } catch (e: Exception) {
+            Log.e("FirebaseRepo", "cleanupOldReceiptImages error: ${e.message}")
+            0
         }
     }
 
@@ -284,6 +351,7 @@ class FirebaseRepository {
                 }
             }
             firestore.collection("receipts").document(receipt.id).delete().await()
+            if (receipt.cloudImage) deleteReceiptImage(receipt.id)
         } catch (e: Exception) {
             Log.e("FirebaseRepo", "deleteReceipt error: ${e.message}")
         }
@@ -462,6 +530,7 @@ class FirebaseRepository {
                 } catch (e: Exception) { "" }
                 if (rMonth == month) {
                     firestore.collection("receipts").document(r.id).delete().await()
+                    if (r.cloudImage) deleteReceiptImage(r.id)
                 }
             }
 

@@ -32,6 +32,7 @@ import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.utils.CategorizationEngine
 import com.jmti.budgetfy.utils.DialogForm
 import com.jmti.budgetfy.utils.GeminiReceiptExtractor
+import com.jmti.budgetfy.utils.ImageCompress
 import com.jmti.budgetfy.utils.ImageLoader
 import com.jmti.budgetfy.utils.OCRHelper
 import com.jmti.budgetfy.utils.ReceiptParser
@@ -538,9 +539,12 @@ class CaptureReceiptActivity : AppCompatActivity() {
             imageUri = savedImagePath
         )
 
+        val photo = capturedBitmap
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                firebaseRepo.saveReceipt(userId, receipt)
+                // Receipt text stays readable at ~1600px.
+                val jpeg = photo?.let { ImageCompress.toJpeg(it, maxSide = 1600, maxBytes = 700_000) }
+                firebaseRepo.saveReceipt(userId, receipt, jpeg)
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
                     Toast.makeText(this@CaptureReceiptActivity,

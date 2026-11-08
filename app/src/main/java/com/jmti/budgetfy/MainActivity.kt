@@ -300,6 +300,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        cleanupOldPhotosDaily(userId)
+        restoreProfileOnce(userId)
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 overallBudget = firebaseRepo.getOverallBudget(userId)
@@ -318,6 +321,33 @@ class MainActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+            }
+        }
+    }
+
+    /**
+     * Receipt photos are kept in Firestore for 90 days (free-plan friendly).
+     * Runs at most once a day so it doesn't cost reads on every launch.
+     */
+    private fun cleanupOldPhotosDaily(userId: String) {
+        val prefs = getSharedPreferences("receipt_photo_cleanup", MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        if (now - prefs.getLong("lastRun_$userId", 0L) < 24L * 60 * 60 * 1000) return
+        CoroutineScope(Dispatchers.IO).launch {
+            firebaseRepo.cleanupOldReceiptImages(userId, maxAgeDays = 90)
+            prefs.edit().putLong("lastRun_$userId", now).apply()
+        }
+    }
+
+    /**
+     * After a reinstall or on a new phone, brings back the profile picture and
+     * spending card from Firestore (once per account per install).
+     */
+    private fun restoreProfileOnce(userId: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val changed = com.jmti.budgetfy.utils.ProfileSync.syncOnLaunch(this@MainActivity, userId)
+            if (changed) withContext(Dispatchers.Main) {
+                if (!isFinishing && !isDestroyed) loadBackgroundPreference()
             }
         }
     }

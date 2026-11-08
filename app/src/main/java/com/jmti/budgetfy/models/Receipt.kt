@@ -11,5 +11,7 @@ data class Receipt(
     val storeName: String = "",
     val date: Timestamp = Timestamp.now(),
     val items: List<ReceiptItem> = emptyList(),
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    /** True while a copy of the photo is kept in Firestore (receipt_images/{id}). */
+    val cloudImage: Boolean = false
 )

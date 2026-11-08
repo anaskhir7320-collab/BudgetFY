@@ -156,12 +156,39 @@ class ReceiptDetailActivity : AppCompatActivity() {
             receiptImage.setImageURI(Uri.fromFile(File(r.imageUri)))
             imageExpandHint.text = "Tap to expand"
         } else {
-            receiptImage.setImageResource(R.mipmap.ic_launcher)
-            receiptImage.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            imageExpandHint.text = "No photo saved"
+            showNoPhoto()
+            // Local copy is gone (e.g. app reinstalled) — fetch the Firestore copy.
+            if (r.cloudImage) loadCloudPhoto(r.id)
         }
 
         itemAdapter.updateItems(r.items)
+    }
+
+    private fun showNoPhoto() {
+        receiptImage.setImageResource(R.mipmap.ic_launcher)
+        receiptImage.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        imageExpandHint.text = "No photo saved"
+    }
+
+    private fun loadCloudPhoto(receiptId: String) {
+        imageExpandHint.text = "Loading photo…"
+        CoroutineScope(Dispatchers.IO).launch {
+            val bytes = firebaseRepo.getReceiptImage(receiptId)
+            val bitmap = bytes?.let {
+                android.graphics.BitmapFactory.decodeByteArray(it, 0, it.size)
+            }
+            withContext(Dispatchers.Main) {
+                if (isFinishing || isDestroyed) return@withContext
+                if (bitmap != null) {
+                    hasPhoto = true
+                    receiptImage.setImageBitmap(bitmap)
+                    receiptImage.scaleType = ImageView.ScaleType.CENTER_CROP
+                    imageExpandHint.text = "Tap to expand"
+                } else {
+                    showNoPhoto()
+                }
+            }
+        }
     }
 
     private fun setStoreName(name: String) {

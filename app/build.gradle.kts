@@ -1,7 +1,8 @@
 import java.util.Properties
 
-// Secrets live in local.properties (git-ignored), never in source:
-//   GEMINI_API_KEY=your-key-from-aistudio.google.com
+// Gemini is called through Firebase AI Logic, so NO Gemini API key is built
+// into the app (the key lives in the Firebase console). Optional overrides in
+// local.properties (git-ignored):
 //   GEMINI_MODEL=gemini-flash-lite-latest         (optional) fast model, reads every receipt
 //   GEMINI_ACCURATE_MODEL=gemini-flash-latest     (optional) re-reads receipts whose items
 //                                                 don't add up to the total
@@ -29,10 +30,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField(
-            "String", "GEMINI_API_KEY",
-            "\"${localProps.getProperty("GEMINI_API_KEY", "")}\""
-        )
         buildConfigField(
             "String", "GEMINI_MODEL",
             "\"${localProps.getProperty("GEMINI_MODEL", "gemini-flash-lite-latest")}\""
@@ -86,9 +83,17 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    // Firebase AI Logic: calls Gemini through Firebase, so no Gemini key ships in the app
+    // 18.1+ is needed for thinkingLevel (Gemini 3.x rejects the older thinkingBudget)
+    implementation("com.google.firebase:firebase-ai:18.1.0")
+    // App Check: only the real app may call AI Logic. Debug provider is
+    // compiled into debug builds only; release uses Play Integrity.
+    implementation("com.google.firebase:firebase-appcheck")
+    debugImplementation("com.google.firebase:firebase-appcheck-debug")
+    releaseImplementation("com.google.firebase:firebase-appcheck-playintegrity")
 
     // ML Kit OCR
     implementation("com.google.mlkit:text-recognition:16.0.0")

@@ -4,6 +4,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
+import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -16,6 +18,8 @@ import com.google.gson.Gson
 import com.jmti.budgetfy.adapters.ReceiptItemAdapter
 import com.jmti.budgetfy.models.Receipt
 import com.jmti.budgetfy.repositories.FirebaseRepository
+import com.jmti.budgetfy.utils.CategoryStyle
+import com.jmti.budgetfy.views.CategorySpendBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,12 +33,11 @@ class ReceiptDetailActivity : AppCompatActivity() {
     private lateinit var receiptImage: ImageView
     private lateinit var totalTextView: TextView
     private lateinit var dateTextView: TextView
-    private lateinit var itemCountTextView: TextView
     private lateinit var storeNameTextView: TextView
     private lateinit var itemsRecyclerView: RecyclerView
     private lateinit var toolbar: Toolbar
-    private lateinit var storeInitialTextView: TextView
-    private lateinit var categoriesTextView: TextView
+    private lateinit var spendBar: CategorySpendBar
+    private lateinit var categoryChips: ViewGroup
     private lateinit var imageExpandHint: TextView
     private lateinit var receiptImageCard: android.view.View
     private var imageExpanded = false
@@ -68,12 +71,11 @@ class ReceiptDetailActivity : AppCompatActivity() {
         receiptImage = findViewById(R.id.receiptImageDetail)
         totalTextView = findViewById(R.id.detailTotalTextView)
         dateTextView = findViewById(R.id.detailDateTextView)
-        itemCountTextView = findViewById(R.id.detailItemCountTextView)
         storeNameTextView = findViewById(R.id.detailStoreNameTextView)
         itemsRecyclerView = findViewById(R.id.detailItemsRecyclerView)
         toolbar = findViewById(R.id.detailToolbar)
-        storeInitialTextView = findViewById(R.id.detailStoreInitial)
-        categoriesTextView = findViewById(R.id.detailCategoriesTextView)
+        spendBar = findViewById(R.id.detailSpendBar)
+        categoryChips = findViewById(R.id.detailCategoryChips)
         imageExpandHint = findViewById(R.id.imageExpandHint)
         receiptImageCard = findViewById(R.id.receiptImageCard)
 
@@ -109,7 +111,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
 
                         withContext(Dispatchers.Main) {
                             itemAdapter.updateItems(receipt!!.items)
-                            categoriesTextView.text = categorySummary(receipt!!)
+                            bindCategories(receipt!!)
                             Toast.makeText(
                                 this@ReceiptDetailActivity,
                                 "Category updated to ${newItem.category}",
@@ -141,10 +143,11 @@ class ReceiptDetailActivity : AppCompatActivity() {
         totalTextView.text = "RM ${String.format("%.2f", r.totalAmount)}"
 
         val dateFormat = SimpleDateFormat("d MMM yyyy · h:mm a", Locale.getDefault())
-        dateTextView.text = dateFormat.format(r.date.toDate())
+        val count = r.items.size
+        val countText = if (count == 1) "1 item" else "$count items"
+        dateTextView.text = "${dateFormat.format(r.date.toDate())} · $countText"
 
-        itemCountTextView.text = r.items.size.toString()
-        categoriesTextView.text = categorySummary(r)
+        bindCategories(r)
 
         setStoreName(r.storeName)
 
@@ -154,7 +157,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
 
         if (hasPhoto) {
             receiptImage.setImageURI(Uri.fromFile(File(r.imageUri)))
-            imageExpandHint.text = "Tap to expand"
+            showPhotoHint()
         } else {
             showNoPhoto()
             // Local copy is gone (e.g. app reinstalled) — fetch the Firestore copy.
@@ -164,13 +167,22 @@ class ReceiptDetailActivity : AppCompatActivity() {
         itemAdapter.updateItems(r.items)
     }
 
+    /** Photo deleted after 90 days, or never saved: show the "No Receipt Found" art. */
     private fun showNoPhoto() {
-        receiptImage.setImageResource(R.mipmap.ic_launcher)
-        receiptImage.scaleType = ImageView.ScaleType.CENTER_INSIDE
-        imageExpandHint.text = "No photo saved"
+        receiptImage.setImageResource(R.drawable.receipt_placeholder)
+        receiptImage.scaleType = ImageView.ScaleType.FIT_CENTER
+        receiptImage.setBackgroundColor(android.graphics.Color.WHITE)
+        imageExpandHint.visibility = View.GONE
+    }
+
+    private fun showPhotoHint() {
+        receiptImage.background = null
+        imageExpandHint.visibility = View.VISIBLE
+        imageExpandHint.text = "Tap to expand"
     }
 
     private fun loadCloudPhoto(receiptId: String) {
+        imageExpandHint.visibility = View.VISIBLE
         imageExpandHint.text = "Loading photo…"
         CoroutineScope(Dispatchers.IO).launch {
             val bytes = firebaseRepo.getReceiptImage(receiptId)
@@ -183,7 +195,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
                     hasPhoto = true
                     receiptImage.setImageBitmap(bitmap)
                     receiptImage.scaleType = ImageView.ScaleType.CENTER_CROP
-                    imageExpandHint.text = "Tap to expand"
+                    showPhotoHint()
                 } else {
                     showNoPhoto()
                 }
@@ -195,15 +207,39 @@ class ReceiptDetailActivity : AppCompatActivity() {
         val shown = name.ifEmpty { "Receipt" }
         storeNameTextView.text = shown
         toolbar.title = shown
-        storeInitialTextView.text = shown.trim().firstOrNull { it.isLetterOrDigit() }
-            ?.uppercaseChar()?.toString() ?: "R"
     }
 
-    /** "Food & Dining" or "Food & Dining +2" */
-    private fun categorySummary(r: Receipt): String {
-        val counts = r.items.groupingBy { it.category }.eachCount()
-        val top = counts.maxByOrNull { it.value }?.key ?: return "—"
-        return if (counts.size > 1) "$top +${counts.size - 1}" else top
+    /** Spend bar plus one colour chip per category ("● Groceries  RM 110.00"). */
+    private fun bindCategories(r: Receipt) {
+        val spend = CategoryStyle.spendByCategory(r)
+        spendBar.setSpend(spend)
+        spendBar.visibility = if (spend.isEmpty()) View.GONE else View.VISIBLE
+
+        categoryChips.removeAllViews()
+        val usePrices = r.items.any { it.price > 0.0 }
+        val dp = resources.displayMetrics.density
+        spend.forEach { (category, amount) ->
+            val color = CategoryStyle.color(category)
+            val dot = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(color)
+                setSize((7 * dp).toInt(), (7 * dp).toInt())
+            }
+            val chip = TextView(this).apply {
+                text = if (usePrices) "$category  RM ${String.format("%.2f", amount)}" else category
+                textSize = 12f
+                setTextColor(color)
+                setCompoundDrawablesRelativeWithIntrinsicBounds(dot, null, null, null)
+                compoundDrawablePadding = (6 * dp).toInt()
+                setPadding((10 * dp).toInt(), (5 * dp).toInt(), (10 * dp).toInt(), (5 * dp).toInt())
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = 8 * dp
+                    setColor(CategoryStyle.tint(category))
+                }
+            }
+            categoryChips.addView(chip)
+        }
+        categoryChips.visibility = if (spend.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun showRenameDialog() {

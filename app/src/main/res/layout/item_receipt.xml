@@ -15,17 +15,14 @@
         android:paddingHorizontal="16dp"
         android:paddingVertical="14dp">
 
-        <!-- Store initial on a soft blue tile -->
-        <TextView
-            android:id="@+id/storeInitialTextView"
+        <!-- Shopping bag on a soft blue tile -->
+        <ImageView
             android:layout_width="42dp"
             android:layout_height="42dp"
             android:background="@drawable/bg_icon_tile"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:text="R"
-            android:textColor="@color/accent_text"
-            android:textSize="17sp" />
+            android:contentDescription="@null"
+            android:padding="10dp"
+            android:src="@drawable/ic_shopping_bag" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -75,6 +72,14 @@
                     android:textColor="@color/accent_text"
                     android:textSize="12sp" />
             </LinearLayout>
+
+            <!-- Spend per category, in category colours -->
+            <com.jmti.budgetfy.views.CategorySpendBar
+                android:id="@+id/categorySpendBar"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_marginTop="7dp"
+                android:layout_marginEnd="8dp" />
         </LinearLayout>
 
         <TextView

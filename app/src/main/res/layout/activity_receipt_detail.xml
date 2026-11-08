@@ -33,7 +33,7 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp">
 
-                <!-- ═══ SUMMARY ═══ -->
+                <!-- ═══ SUMMARY (slim) ═══ -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -45,26 +45,23 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_total_summary"
                         android:orientation="vertical"
-                        android:paddingHorizontal="20dp"
-                        android:paddingVertical="18dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="14dp">
 
-                        <!-- Store tile + name + date -->
+                        <!-- Bag tile + name/date + total -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-                            <TextView
-                                android:id="@+id/detailStoreInitial"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
+                            <ImageView
+                                android:layout_width="42dp"
+                                android:layout_height="42dp"
                                 android:background="@drawable/bg_icon_tile"
-                                android:fontFamily="sans-serif-medium"
-                                android:gravity="center"
-                                android:text="R"
-                                android:textColor="@color/accent_text"
-                                android:textSize="18sp" />
+                                android:contentDescription="@null"
+                                android:padding="10dp"
+                                android:src="@drawable/ic_shopping_bag" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -82,8 +79,9 @@
                                     android:maxLines="1"
                                     android:text="Receipt"
                                     android:textColor="@color/text_primary"
-                                    android:textSize="17sp" />
+                                    android:textSize="16sp" />
 
+                                <!-- "8 Nov 2026 · 3:22 PM · 23 items" -->
                                 <TextView
                                     android:id="@+id/detailDateTextView"
                                     android:layout_width="wrap_content"
@@ -93,82 +91,33 @@
                                     android:textColor="@color/text_secondary"
                                     android:textSize="12sp" />
                             </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/detailTotalTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="RM 0.00"
+                                android:textColor="@color/brand_blue"
+                                android:textSize="20sp" />
                         </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
-                            android:text="Total paid"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/detailTotalTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="RM 0.00"
-                            android:textAppearance="@style/TextAppearance.App.Hero"
-                            android:textColor="@color/brand_blue" />
-
-                        <View
+                        <!-- Spend split by category -->
+                        <com.jmti.budgetfy.views.CategorySpendBar
+                            android:id="@+id/detailSpendBar"
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="16dp"
-                            android:background="@color/stroke" />
+                            android:layout_height="6dp"
+                            android:layout_marginTop="14dp" />
 
-                        <LinearLayout
+                        <!-- One colour chip per category: "Groceries  RM 110.00" -->
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/detailCategoryChips"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:baselineAligned="false"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Items"
-                                    android:textAppearance="@style/TextAppearance.App.StatLabel" />
-
-                                <TextView
-                                    android:id="@+id/detailItemCountTextView"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="3dp"
-                                    android:text="0"
-                                    android:textAppearance="@style/TextAppearance.App.StatValue" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="2"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Categories"
-                                    android:textAppearance="@style/TextAppearance.App.StatLabel" />
-
-                                <TextView
-                                    android:id="@+id/detailCategoriesTextView"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="3dp"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
-                                    android:text="—"
-                                    android:textAppearance="@style/TextAppearance.App.StatValue" />
-                            </LinearLayout>
-                        </LinearLayout>
+                            android:layout_marginTop="10dp"
+                            app:chipSpacingHorizontal="6dp"
+                            app:chipSpacingVertical="6dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -199,7 +148,7 @@
                             android:layout_height="200dp"
                             android:contentDescription="Receipt image"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher" />
+                            android:src="@drawable/receipt_placeholder" />
 
                         <TextView
                             android:id="@+id/imageExpandHint"

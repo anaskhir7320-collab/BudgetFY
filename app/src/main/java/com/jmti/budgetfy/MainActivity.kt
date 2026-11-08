@@ -21,7 +21,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.gson.Gson
-import com.jmti.budgetfy.adapters.CategoryBudgetAdapter
+import com.jmti.budgetfy.adapters.CategoryLegendAdapter
 import com.jmti.budgetfy.adapters.ExpenseAdapter
 import com.jmti.budgetfy.models.BudgetCategory
 import com.jmti.budgetfy.models.Receipt
@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
     private val firebaseRepo = FirebaseRepository()
     private lateinit var expenseAdapter: ExpenseAdapter
-    private lateinit var categoryAdapter: CategoryBudgetAdapter
+    private lateinit var categoryAdapter: CategoryLegendAdapter
     private var receipts = listOf<Receipt>()
     private var budgets = listOf<BudgetCategory>()
 
@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("RECEIPT_JSON", Gson().toJson(receipt))
             startActivity(intent)
         }
-        categoryAdapter = CategoryBudgetAdapter()
+        categoryAdapter = CategoryLegendAdapter()
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = expenseAdapter
@@ -218,11 +218,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyCollapseState() {
+        val content = findViewById<View>(R.id.categoryContent)
         if (isCategoryExpanded) {
-            categoryRecyclerView.visibility = View.VISIBLE
+            content.visibility = View.VISIBLE
             rotateArrow(0f, 180f)
         } else {
-            categoryRecyclerView.visibility = View.GONE
+            content.visibility = View.GONE
             rotateArrow(180f, 0f)
         }
     }
@@ -400,7 +401,24 @@ class MainActivity : AppCompatActivity() {
 
         emptyTransactionsText.visibility = if (receipts.isEmpty()) View.VISIBLE else View.GONE
 
-        categoryAdapter.updateData(budgets)
+        updateBudgetDonut(budgets)
+    }
+
+    /** Donut + legend for "Budget by category", biggest spend first. */
+    private fun updateBudgetDonut(budgets: List<com.jmti.budgetfy.models.BudgetCategory>) {
+        val sorted = budgets.sortedByDescending { it.spent }
+        categoryAdapter.updateData(sorted)
+
+        val spent = sorted.sumOf { it.spent }
+        val limit = sorted.sumOf { it.limit }
+        val pct = if (limit > 0) ((spent / limit) * 100).toInt() else 0
+        val limitText = if (limit % 1.0 == 0.0) limit.toLong().toString() else String.format("%.2f", limit)
+        findViewById<com.jmti.budgetfy.views.BudgetDonutView>(R.id.budgetDonut).setData(
+            sorted.map { com.jmti.budgetfy.utils.CategoryStyle.color(it.name) to it.spent },
+            limit,
+            "RM ${String.format("%.2f", spent)}",
+            "of RM $limitText · $pct%"
+        )
     }
 
     /** Stats row (receipts, daily average, left per day) and the spending chart. */

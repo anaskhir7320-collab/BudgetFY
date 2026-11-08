@@ -416,13 +416,28 @@
                             android:src="@drawable/ic_chevron_down" />
                     </LinearLayout>
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/categoryRecyclerView"
+                    <!-- Donut + legend, shown when expanded -->
+                    <LinearLayout
+                        android:id="@+id/categoryContent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        android:paddingBottom="6dp"
-                        android:visibility="gone" />
+                        android:orientation="vertical"
+                        android:paddingBottom="10dp"
+                        android:visibility="gone">
+
+                        <com.jmti.budgetfy.views.BudgetDonutView
+                            android:id="@+id/budgetDonut"
+                            android:layout_width="170dp"
+                            android:layout_height="170dp"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginBottom="12dp" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/categoryRecyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One legend row under the budget donut: ● Groceries   214.19 / 300   71% -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="7dp">
+
+    <View
+        android:id="@+id/legendDot"
+        android:layout_width="9dp"
+        android:layout_height="9dp"
+        android:layout_marginEnd="12dp" />
+
+    <TextView
+        android:id="@+id/legendName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Groceries"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/legendAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0.00 / 0"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/legendPercent"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="0%"
+        android:textSize="13sp" />
+</LinearLayout>

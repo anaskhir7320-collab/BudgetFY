@@ -106,6 +106,7 @@ class ProfileActivity : AppCompatActivity() {
         resetBudgetCard.setOnClickListener { confirmResetOverall() }
         fullResetCard.setOnClickListener { confirmFullReset() }
         logoutCard.setOnClickListener { logoutUser() }
+        setupDebugTokenRow()
 
         themeDayButton.setOnClickListener {
             Toast.makeText(this, "Day mode is active", Toast.LENGTH_SHORT).show()
@@ -150,6 +151,40 @@ class ProfileActivity : AppCompatActivity() {
             fillAfter = true
         }
         budgetCollapseArrow.startAnimation(anim)
+    }
+
+    /**
+     * Debug builds only: lets a tester see and send their App Check debug
+     * token, which the owner adds in Firebase so Gemini reading works for them.
+     */
+    private fun setupDebugTokenRow() {
+        val card = findViewById<View>(R.id.debugTokenCard)
+        if (AppCheckSetup.debugToken(this) == null && !BuildConfig.DEBUG) return
+        card.visibility = View.VISIBLE
+        card.setOnClickListener {
+            val token = AppCheckSetup.debugToken(this)
+            if (token == null) {
+                Toast.makeText(this, "Token not ready yet. Scan a receipt once, then try again.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            MaterialAlertDialogBuilder(this)
+                .setTitle("App Check token")
+                .setMessage("Send this code to the app owner. Keep it private.\n\n$token")
+                .setPositiveButton("Copy") { _, _ ->
+                    val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("App Check token", token))
+                    Toast.makeText(this, "Token copied", Toast.LENGTH_SHORT).show()
+                }
+                .setNeutralButton("Share") { _, _ ->
+                    startActivity(Intent.createChooser(
+                        Intent(Intent.ACTION_SEND).setType("text/plain")
+                            .putExtra(Intent.EXTRA_TEXT, "BudgetFY App Check token: $token"),
+                        "Send token"
+                    ))
+                }
+                .setNegativeButton("Close", null)
+                .show()
+        }
     }
 
     private fun loadAvatarImage() {

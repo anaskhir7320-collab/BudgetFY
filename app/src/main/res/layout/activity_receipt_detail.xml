@@ -192,6 +192,15 @@
                         android:nestedScrollingEnabled="false" />
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- ═══ TOTALS: items subtotal, rounding, total paid ═══ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp">
+
+                    <include layout="@layout/view_receipt_totals" />
+                </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>

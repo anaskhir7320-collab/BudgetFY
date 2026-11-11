@@ -112,6 +112,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             itemAdapter.updateItems(receipt!!.items)
                             bindCategories(receipt!!)
+                            bindTotals(receipt!!)
                             Toast.makeText(
                                 this@ReceiptDetailActivity,
                                 "Category updated to ${newItem.category}",
@@ -148,6 +149,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
         dateTextView.text = "${dateFormat.format(r.date.toDate())} · $countText"
 
         bindCategories(r)
+        bindTotals(r)
 
         setStoreName(r.storeName)
 
@@ -207,6 +209,13 @@ class ReceiptDetailActivity : AppCompatActivity() {
         val shown = name.ifEmpty { "Receipt" }
         storeNameTextView.text = shown
         toolbar.title = shown
+    }
+
+    /** Footer under the items: subtotal, tax rows, rounding and total paid. */
+    private fun bindTotals(r: Receipt) {
+        com.jmti.budgetfy.utils.ReceiptTotals.bind(
+            findViewById(R.id.receiptTotals), r.items, r.charges, r.printedTotal, r.totalAmount
+        )
     }
 
     /** Spend bar plus one colour chip per category ("● Groceries  RM 110.00"). */

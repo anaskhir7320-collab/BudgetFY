@@ -27,6 +27,7 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.jmti.budgetfy.adapters.ReceiptItemAdapter
 import com.jmti.budgetfy.models.LearnedKeyword
 import com.jmti.budgetfy.models.Receipt
+import com.jmti.budgetfy.models.ReceiptCharge
 import com.jmti.budgetfy.models.ReceiptItem
 import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.utils.CategorizationEngine
@@ -62,6 +63,9 @@ class CaptureReceiptActivity : AppCompatActivity() {
     private lateinit var storeNameTextView: android.widget.TextView
     private lateinit var storeEditIcon: android.widget.TextView
     private var currentStoreName: String = "Receipt"
+    /** Tax/charge lines and printed total from the last AI read. */
+    private var currentCharges: List<ReceiptCharge> = emptyList()
+    private var currentPrintedTotal: Double? = null
 
     private val firebaseRepo by lazy { FirebaseRepository() }
     private val ocrHelper = OCRHelper()
@@ -181,6 +185,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                     }
                 }
                 itemAdapter.updateItems(extractedItems.toList())
+                refreshTotals()
             },
             onItemDeleted = { item ->
                 val idx = extractedItems.indexOfFirst {
@@ -189,6 +194,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 if (idx != -1) {
                     extractedItems.removeAt(idx)
                     itemAdapter.updateItems(extractedItems.toList())
+                    refreshTotals()
                     saveButton.isEnabled = extractedItems.isNotEmpty()
 
                     // ✅ Save avoid pattern to shared Firestore
@@ -440,9 +446,15 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 val aiError = analysis.aiError
 
                 withContext(Dispatchers.Main) {
+                    currentCharges = if (usedAi) ai!!.charges.map {
+                        ReceiptCharge(type = it.type, rate = it.rate, amount = it.amount, inclusive = it.inclusive)
+                    } else emptyList()
+                    currentPrintedTotal = receiptTotal
+
                     extractedItems.clear()
                     extractedItems.addAll(correctedItems)
                     itemAdapter.updateItems(extractedItems.toList())
+                    refreshTotals()
 
                     val learnedStore = categorizationEngine.applyLearnedStoreName(detectedStore, learnedKeywords)
                     currentStoreName = learnedStore
@@ -486,6 +498,20 @@ class CaptureReceiptActivity : AppCompatActivity() {
         }
     }
 
+    /** Updates the subtotal / tax / total card under the items list. */
+    private fun refreshTotals() {
+        val card = findViewById<View>(R.id.captureTotalsCard)
+        val items = extractedItems.filter { it.price > 0 }
+        if (items.isEmpty()) {
+            card.visibility = View.GONE
+            return
+        }
+        card.visibility = View.VISIBLE
+        com.jmti.budgetfy.utils.ReceiptTotals.bind(
+            card, items, currentCharges, currentPrintedTotal, items.sumOf { it.price }
+        )
+    }
+
     private fun showAddItemDialog() {
         val form = DialogForm(this)
         val nameInput = form.field("Item name")
@@ -514,6 +540,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 )
                 extractedItems.add(newItem)
                 itemAdapter.updateItems(extractedItems.toList())
+                refreshTotals()
                 saveButton.isEnabled = true
                 Toast.makeText(this, "Added: $name", Toast.LENGTH_SHORT).show()
             }
@@ -536,7 +563,9 @@ class CaptureReceiptActivity : AppCompatActivity() {
             totalAmount = total,
             storeName = currentStoreName,
             items = items,
-            imageUri = savedImagePath
+            imageUri = savedImagePath,
+            charges = currentCharges,
+            printedTotal = currentPrintedTotal
         )
 
         val photo = capturedBitmap

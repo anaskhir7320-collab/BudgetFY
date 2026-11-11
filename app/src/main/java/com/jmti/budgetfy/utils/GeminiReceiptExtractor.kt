@@ -57,6 +57,8 @@ class GeminiReceiptExtractor(
         val category: String?
     )
 
+    data class Charge(val type: String, val rate: Double?, val amount: Double, val inclusive: Boolean)
+
     data class Result(
         val storeName: String?,
         val date: String?,
@@ -67,6 +69,8 @@ class GeminiReceiptExtractor(
         val discount: Double?,
         val rounding: Double?,
         val total: Double?,
+        /** Every tax/charge line printed, inclusive or added on top. */
+        val charges: List<Charge> = emptyList(),
         /** Which Gemini model produced this result. */
         val model: String = ""
     ) {
@@ -238,6 +242,13 @@ class GeminiReceiptExtractor(
         - date = purchase date as YYYY-MM-DD, or null if not visible.
         - tax and serviceCharge: only when they are separate lines ADDED to the bill. If the receipt
           says prices are inclusive of tax/service, use null.
+        - charges: every tax or charge line printed on the receipt, whether it is ADDED to the bill
+          or already INCLUDED in the prices (e.g. "SST (Inclu 6%) 2.30" is included). For each:
+          type = SST, Sales Tax, Service Tax, GST, Service Charge, Tourism Tax or Other
+          ("SST" when the receipt just says SST; "Service Tax" when it says Service Tax);
+          rate = the percentage as a number (6 for 6%) or null; amount = the amount printed;
+          inclusive = true if it is already inside the item prices, false if added on top.
+          Use an empty list when the receipt shows no tax or charge. Never invent one.
         - discount: a whole-bill discount as a positive number, else null.
         - rounding: the rounding adjustment as printed (can be negative), else null.
         - total = the final amount payable (Grand Total / Total / Jumlah).
@@ -259,6 +270,15 @@ class GeminiReceiptExtractor(
             ),
             listOf("unitPrice")
         )
+        val chargeSchema = Schema.obj(
+            mapOf(
+                "type" to Schema.enumeration(CHARGE_TYPES),
+                "rate" to Schema.double(null, true),
+                "amount" to Schema.double(),
+                "inclusive" to Schema.boolean()
+            ),
+            listOf("rate")
+        )
         return Schema.obj(
             mapOf(
                 "storeName" to Schema.string(null, true),
@@ -269,7 +289,8 @@ class GeminiReceiptExtractor(
                 "serviceCharge" to Schema.double(null, true),
                 "discount" to Schema.double(null, true),
                 "rounding" to Schema.double(null, true),
-                "total" to Schema.double(null, true)
+                "total" to Schema.double(null, true),
+                "charges" to Schema.array(chargeSchema)
             ),
             listOf(
                 "storeName", "date", "subtotal", "tax", "serviceCharge", "discount", "rounding"
@@ -388,7 +409,17 @@ class GeminiReceiptExtractor(
             serviceCharge = obj.number("serviceCharge"),
             discount = obj.number("discount"),
             rounding = obj.number("rounding"),
-            total = obj.number("total")
+            total = obj.number("total"),
+            charges = obj.getAsJsonArray("charges")?.mapNotNull { element ->
+                val c = element.asJsonObject
+                val amount = c.number("amount")?.takeIf { it > 0.0 } ?: return@mapNotNull null
+                Charge(
+                    type = c.string("type")?.takeIf { it in CHARGE_TYPES } ?: "Other",
+                    rate = c.number("rate")?.takeIf { it > 0.0 },
+                    amount = amount,
+                    inclusive = c.field("inclusive")?.let { runCatching { it.asBoolean }.getOrNull() } ?: false
+                )
+            }.orEmpty()
         )
     }
 
@@ -404,6 +435,10 @@ class GeminiReceiptExtractor(
     companion object {
         private const val TAG = "GEMINI"
         private const val MAX_IMAGE_SIDE = 2048
+
+        private val CHARGE_TYPES = listOf(
+            "SST", "Sales Tax", "Service Tax", "GST", "Service Charge", "Tourism Tax", "Other"
+        )
 
         /** Allows for 5-sen rounding on Malaysian receipts. */
         private const val TOLERANCE = 0.06

@@ -39,7 +39,7 @@ class CategorySpendBar @JvmOverloads constructor(
             val w = (usable * (amount / total)).toFloat().coerceAtLeast(h)
             val right = if (i == segments.lastIndex) width.toFloat() else (x + w).coerceAtMost(width.toFloat())
             if (right > x) {
-                paint.color = CategoryStyle.color(category)
+                paint.color = CategoryStyle.color(context, category)
                 rect.set(x, 0f, right, h)
                 canvas.drawRoundRect(rect, radius, radius, paint)
             }

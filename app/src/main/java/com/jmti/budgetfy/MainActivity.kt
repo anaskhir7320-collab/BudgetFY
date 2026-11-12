@@ -414,7 +414,7 @@ class MainActivity : AppCompatActivity() {
         val pct = if (limit > 0) ((spent / limit) * 100).toInt() else 0
         val limitText = if (limit % 1.0 == 0.0) limit.toLong().toString() else String.format("%.2f", limit)
         findViewById<com.jmti.budgetfy.views.BudgetDonutView>(R.id.budgetDonut).setData(
-            sorted.map { com.jmti.budgetfy.utils.CategoryStyle.color(it.name) to it.spent },
+            sorted.map { com.jmti.budgetfy.utils.CategoryStyle.color(this, it.name) to it.spent },
             limit,
             "RM ${String.format("%.2f", spent)}",
             "of RM $limitText · $pct%"

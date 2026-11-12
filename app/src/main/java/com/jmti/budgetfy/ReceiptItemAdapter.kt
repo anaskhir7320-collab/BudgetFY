@@ -140,7 +140,7 @@ class ReceiptItemAdapter(
 
             // Chip: blue = read automatically, green with ✓ = you corrected it
             val (chipBg, chipText) = if (item.isManuallyCorrected) {
-                android.graphics.Color.parseColor("#E8F6EE") to android.graphics.Color.parseColor("#1E7B46")
+                androidx.core.content.ContextCompat.getColor(itemView.context, R.color.chip_corrected_bg) to androidx.core.content.ContextCompat.getColor(itemView.context, R.color.chip_corrected_text)
             } else {
                 androidx.core.content.ContextCompat.getColor(itemView.context, R.color.accent_soft) to
                         androidx.core.content.ContextCompat.getColor(itemView.context, R.color.accent_text)

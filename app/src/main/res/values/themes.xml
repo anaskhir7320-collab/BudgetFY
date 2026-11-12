@@ -17,9 +17,9 @@
 
         <!-- Status/navigation bars blend into the page instead of a solid blue band -->
         <item name="android:statusBarColor">@color/page_bg</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">@bool/light_system_bars</item>
         <item name="android:navigationBarColor">@color/card_bg</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowLightNavigationBar">@bool/light_system_bars</item>
 
         <!-- Background -->
         <item name="android:windowBackground">@color/page_bg</item>

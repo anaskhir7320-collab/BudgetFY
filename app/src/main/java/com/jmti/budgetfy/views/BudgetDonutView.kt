@@ -27,18 +27,18 @@ class BudgetDonutView @JvmOverloads constructor(
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = stroke
-        color = Color.parseColor("#EEF0F4")
+        color = androidx.core.content.ContextCompat.getColor(context, com.jmti.budgetfy.R.color.donut_track)
     }
     private val bigText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         textSize = 17f * density
-        color = Color.parseColor("#1A1A1A")
+        color = androidx.core.content.ContextCompat.getColor(context, com.jmti.budgetfy.R.color.text_primary)
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
     private val smallText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         textSize = 11.5f * density
-        color = Color.parseColor("#777777")
+        color = androidx.core.content.ContextCompat.getColor(context, com.jmti.budgetfy.R.color.text_secondary)
     }
     private val oval = RectF()
 

@@ -35,7 +35,7 @@ class CategoryLegendAdapter : RecyclerView.Adapter<CategoryLegendAdapter.Row>() 
         private val percent: TextView = itemView.findViewById(R.id.legendPercent)
 
         fun bind(c: BudgetCategory) {
-            val color = CategoryStyle.color(c.name)
+            val color = CategoryStyle.color(itemView.context, c.name)
             dot.background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(color)
@@ -47,8 +47,8 @@ class CategoryLegendAdapter : RecyclerView.Adapter<CategoryLegendAdapter.Row>() 
             percent.text = "$pct%"
             percent.setTextColor(
                 when {
-                    pct >= 100 -> Color.parseColor("#D32F2F")  // over budget
-                    pct >= 80 -> Color.parseColor("#E65100")   // almost at limit
+                    pct >= 100 -> androidx.core.content.ContextCompat.getColor(itemView.context, R.color.pct_over)
+                    pct >= 80 -> androidx.core.content.ContextCompat.getColor(itemView.context, R.color.pct_warning)
                     else -> color
                 }
             )

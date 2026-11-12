@@ -2,8 +2,8 @@
 <!-- Summary card without a photo: white with a faint blue wash -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <gradient
-        android:startColor="#FFFFFF"
-        android:endColor="#EEF6FF"
+        android:startColor="@color/summary_start"
+        android:endColor="@color/summary_end"
         android:angle="315" />
     <corners android:radius="18dp" />
 </shape>

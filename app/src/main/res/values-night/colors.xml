@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Night mode: same names as values/colors.xml, dark values.
+     Anything not listed here keeps its Day value. -->
+<resources>
+    <!-- Brand blue, a little brighter so it reads on dark -->
+    <color name="brand_blue">#2AA3FF</color>
+    <color name="brand_blue_dark">#5AB4FF</color>
+    <color name="brand_blue_light">#10273F</color>
+
+    <!-- Neutral shades -->
+    <color name="text_primary">#ECEEF2</color>
+    <color name="text_secondary">#A3A9B3</color>
+    <color name="text_tertiary">#737A85</color>
+    <color name="divider">#2A2F38</color>
+    <color name="card_bg">#181B21</color>
+    <color name="page_bg">#0F1115</color>
+    <color name="light_gray">#22262E</color>
+
+    <!-- Surfaces -->
+    <color name="stroke">#2A2F38</color>
+    <color name="stroke_strong">#363C46</color>
+    <color name="surface_muted">#22262E</color>
+    <color name="accent_soft">#10273F</color>
+    <color name="accent_text">#5AB4FF</color>
+    <color name="chart_fill_top">#332AA3FF</color>
+    <color name="chart_fill_bottom">#002AA3FF</color>
+    <color name="progress_track">#2A2F38</color>
+
+    <!-- Alert cards -->
+    <color name="alert_warning_bg">#3A2E12</color>
+    <color name="alert_warning_text">#F5C46B</color>
+    <color name="alert_danger_bg">#3A1A1D</color>
+    <color name="alert_danger_text">#FF9A9A</color>
+    <color name="alert_danger_fill">#2A1517</color>
+    <color name="alert_danger_stroke">#5A2A2E</color>
+    <color name="alert_warning_fill">#2A2312</color>
+    <color name="alert_warning_stroke">#5A4820</color>
+
+    <!-- Danger card -->
+    <color name="danger_card_bg">#2A1517</color>
+    <color name="danger_card_stroke">#5A2A2E</color>
+    <color name="danger_title">#FF8A80</color>
+    <color name="danger_body">#FF9A9A</color>
+
+    <!-- Summary card wash -->
+    <color name="summary_start">#181B21</color>
+    <color name="summary_end">#132235</color>
+
+    <color name="donut_track">#2A2F38</color>
+    <color name="chip_corrected_bg">#143223</color>
+    <color name="chip_corrected_text">#7DDBA3</color>
+    <color name="sheet_handle">#4A505A</color>
+    <color name="pct_warning">#FFB74D</color>
+    <color name="pct_over">#FF6B6B</color>
+
+    <!-- Light icons on the dark status/navigation bars -->
+    <bool name="light_system_bars">false</bool>
+</resources>

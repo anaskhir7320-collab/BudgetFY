@@ -228,7 +228,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
         val usePrices = r.items.any { it.price > 0.0 }
         val dp = resources.displayMetrics.density
         spend.forEach { (category, amount) ->
-            val color = CategoryStyle.color(category)
+            val color = CategoryStyle.color(this, category)
             val dot = android.graphics.drawable.GradientDrawable().apply {
                 shape = android.graphics.drawable.GradientDrawable.OVAL
                 setColor(color)
@@ -243,7 +243,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
                 setPadding((10 * dp).toInt(), (5 * dp).toInt(), (10 * dp).toInt(), (5 * dp).toInt())
                 background = android.graphics.drawable.GradientDrawable().apply {
                     cornerRadius = 8 * dp
-                    setColor(CategoryStyle.tint(category))
+                    setColor(CategoryStyle.tint(this@ReceiptDetailActivity, category))
                 }
             }
             categoryChips.addView(chip)

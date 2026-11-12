@@ -47,6 +47,39 @@
     <color name="alert_danger_bg">#F8D7DA</color>
     <color name="alert_danger_text">#721C24</color>
 
+    <!-- Danger card (Log out / reset) -->
+    <color name="danger_card_bg">#FFEBEE</color>
+    <color name="danger_card_stroke">#FFCDD2</color>
+    <color name="danger_title">#B71C1C</color>
+    <color name="danger_body">#C62828</color>
+
+    <!-- Alert boxes on Home (drawables) -->
+    <color name="alert_danger_fill">#FFF1F1</color>
+    <color name="alert_danger_stroke">#F5C2C2</color>
+    <color name="alert_warning_fill">#FFF8EB</color>
+    <color name="alert_warning_stroke">#F5D9A8</color>
+
+    <!-- Summary card wash (no photo) -->
+    <color name="summary_start">#FFFFFF</color>
+    <color name="summary_end">#EEF6FF</color>
+
+    <!-- Budget donut -->
+    <color name="donut_track">#EEF0F4</color>
+
+    <!-- "You corrected this" chip on receipt items -->
+    <color name="chip_corrected_bg">#E8F6EE</color>
+    <color name="chip_corrected_text">#1E7B46</color>
+
+    <!-- Bottom sheet grab handle -->
+    <color name="sheet_handle">#DDDDDD</color>
+
+    <!-- Budget percentage warnings -->
+    <color name="pct_warning">#E65100</color>
+    <color name="pct_over">#D32F2F</color>
+
+    <!-- Status/navigation bar icons dark on light pages -->
+    <bool name="light_system_bars">true</bool>
+
     <!-- Category colors (keep existing) -->
     <color name="cat_groceries">#4CAF50</color>
     <color name="cat_personal_care">#9C27B0</color>

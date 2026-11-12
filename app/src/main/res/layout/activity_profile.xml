@@ -228,8 +228,8 @@
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
             app:strokeWidth="1dp"
-            app:strokeColor="#FFCDD2"
-            app:cardBackgroundColor="#FFEBEE"
+            app:strokeColor="@color/danger_card_stroke"
+            app:cardBackgroundColor="@color/danger_card_bg"
             android:foreground="?attr/selectableItemBackground">
 
             <LinearLayout
@@ -258,7 +258,7 @@
                         android:text="Full Reset"
                         android:textSize="15sp"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="#B71C1C" />
+                        android:textColor="@color/danger_title" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -266,7 +266,7 @@
                         android:layout_marginTop="2dp"
                         android:text="Delete all receipts + budgets for this month"
                         android:textSize="12sp"
-                        android:textColor="#C62828" />
+                        android:textColor="@color/danger_body" />
                 </LinearLayout>
 
                 <TextView
@@ -274,7 +274,7 @@
                     android:layout_height="wrap_content"
                     android:text="›"
                     android:textSize="24sp"
-                    android:textColor="#C62828" />
+                    android:textColor="@color/danger_body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -371,6 +371,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:id="@+id/dayLabel"
                                 android:text="Day"
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"
@@ -400,6 +401,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:id="@+id/nightLabel"
                                 android:text="Night"
                                 android:textSize="14sp"
                                 android:fontFamily="sans-serif-medium"

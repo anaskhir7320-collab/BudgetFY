@@ -108,12 +108,10 @@ class ProfileActivity : AppCompatActivity() {
         logoutCard.setOnClickListener { logoutUser() }
         setupDebugTokenRow()
 
-        themeDayButton.setOnClickListener {
-            Toast.makeText(this, "Day mode is active", Toast.LENGTH_SHORT).show()
-        }
-        themeNightButton.setOnClickListener {
-            Toast.makeText(this, "Night mode coming soon!", Toast.LENGTH_SHORT).show()
-        }
+        // Day / Night: saved, and every open screen redraws in the new mode.
+        themeDayButton.setOnClickListener { com.jmti.budgetfy.utils.ThemePrefs.setNight(this, false) }
+        themeNightButton.setOnClickListener { com.jmti.budgetfy.utils.ThemePrefs.setNight(this, true) }
+        showThemeSelection(com.jmti.budgetfy.utils.ThemePrefs.isNight(this))
 
         rateRow.setOnClickListener {
             // TODO: Open Play Store link later
@@ -127,6 +125,18 @@ class ProfileActivity : AppCompatActivity() {
         privacyRow.setOnClickListener {
             Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /** Highlights the selected Day / Night option. */
+    private fun showThemeSelection(night: Boolean) {
+        val selected = androidx.core.content.ContextCompat.getColor(this, R.color.brand_blue_dark)
+        val normal = androidx.core.content.ContextCompat.getColor(this, R.color.text_primary)
+        themeDayButton.setBackgroundResource(if (night) R.drawable.bg_theme_option else R.drawable.bg_theme_option_selected)
+        themeNightButton.setBackgroundResource(if (night) R.drawable.bg_theme_option_selected else R.drawable.bg_theme_option)
+        dayIndicator.setBackgroundResource(if (night) R.drawable.bg_dot_unselected else R.drawable.bg_dot_selected)
+        nightIndicator.setBackgroundResource(if (night) R.drawable.bg_dot_selected else R.drawable.bg_dot_unselected)
+        findViewById<TextView>(R.id.dayLabel).setTextColor(if (night) normal else selected)
+        findViewById<TextView>(R.id.nightLabel).setTextColor(if (night) selected else normal)
     }
 
     private fun applyBudgetSettingsState() {

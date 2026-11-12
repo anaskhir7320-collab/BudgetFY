@@ -358,6 +358,13 @@ class MainActivity : AppCompatActivity() {
         val totalBudget = overallBudget
         val percentage = if (totalBudget > 0) ((totalSpent / totalBudget) * 100).toInt() else 0
 
+        // Home screen widget shows the same numbers and the newest receipt.
+        val latest = receipts.maxByOrNull { it.createdAt }
+        com.jmti.budgetfy.widget.BudgetWidget.save(
+            this, totalSpent, totalBudget,
+            latest?.storeName?.ifEmpty { getString(R.string.receipt_default) }, latest?.totalAmount
+        )
+
         totalSpentTextView.text = "RM ${String.format("%.2f", totalSpent)}"
         totalBudgetTextView.text = getString(R.string.of_budget, String.format("%.2f", totalBudget))
         budgetProgressBar.setProgressCompat(percentage.coerceAtMost(100), true)

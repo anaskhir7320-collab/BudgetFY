@@ -278,6 +278,8 @@ class ProfileActivity : AppCompatActivity() {
             .setPositiveButton(getString(R.string.logout)) { _, _ ->
                 CoroutineScope(Dispatchers.IO).launch {
                     firebaseRepo.logoutUser()
+                    // Log out: the widget stops showing this account's spending.
+                    com.jmti.budgetfy.widget.BudgetWidget.clear(this@ProfileActivity)
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@ProfileActivity, getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
                         navigateToLogin()

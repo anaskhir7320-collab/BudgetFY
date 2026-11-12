@@ -329,4 +329,12 @@
     <string name="language_value_english">English (UK)</string>
     <string name="language_value_malay">Bahasa Melayu</string>
     <string name="no_receipt_found">No receipt found</string>
+
+    <!-- Home screen widget -->
+    <string name="widget_name">BudgetFY spending</string>
+    <string name="widget_description">Spending this month, your budget and a quick Scan receipt button</string>
+    <string name="widget_title">BudgetFY · %1$s</string>
+    <string name="widget_days_left">%1$d days left</string>
+    <string name="widget_one_day_left">1 day left</string>
+    <string name="widget_last">Last: %1$s · RM %2$s</string>
 </resources>

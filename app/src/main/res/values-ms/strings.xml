@@ -327,4 +327,12 @@
     <string name="language_value_english">English (UK)</string>
     <string name="language_value_malay">Bahasa Melayu</string>
     <string name="no_receipt_found">Tiada resit dijumpai</string>
+
+    <!-- Home screen widget -->
+    <string name="widget_name">Perbelanjaan BudgetFY</string>
+    <string name="widget_description">Perbelanjaan bulan ini, bajet anda dan butang Imbas resit</string>
+    <string name="widget_title">BudgetFY · %1$s</string>
+    <string name="widget_days_left">%1$d hari lagi</string>
+    <string name="widget_one_day_left">1 hari lagi</string>
+    <string name="widget_last">Terakhir: %1$s · RM %2$s</string>
 </resources>

@@ -26,5 +26,7 @@ object ThemePrefs {
         AppCompatDelegate.setDefaultNightMode(
             if (night) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
         )
+        // Widgets draw their own colours, so redraw them in the new mode.
+        com.jmti.budgetfy.widget.BudgetWidget.refresh(context)
     }
 }

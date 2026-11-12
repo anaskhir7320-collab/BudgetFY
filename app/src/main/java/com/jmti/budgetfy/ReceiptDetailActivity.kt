@@ -173,12 +173,16 @@ class ReceiptDetailActivity : AppCompatActivity() {
     private fun showNoPhoto() {
         receiptImage.setImageResource(R.drawable.receipt_placeholder)
         receiptImage.scaleType = ImageView.ScaleType.FIT_CENTER
-        receiptImage.setBackgroundColor(android.graphics.Color.WHITE)
+        // Transparent picture on the card colour, with room for the caption below.
+        val dp = resources.displayMetrics.density
+        receiptImage.setPadding(0, (16 * dp).toInt(), 0, (44 * dp).toInt())
+        findViewById<View>(R.id.noReceiptText).visibility = View.VISIBLE
         imageExpandHint.visibility = View.GONE
     }
 
     private fun showPhotoHint() {
-        receiptImage.background = null
+        receiptImage.setPadding(0, 0, 0, 0)
+        findViewById<View>(R.id.noReceiptText).visibility = View.GONE
         imageExpandHint.visibility = View.VISIBLE
         imageExpandHint.text = getString(R.string.tap_to_expand)
     }
@@ -214,7 +218,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
     /** Footer under the items: subtotal, tax rows, rounding and total paid. */
     private fun bindTotals(r: Receipt) {
         com.jmti.budgetfy.utils.ReceiptTotals.bind(
-            findViewById(R.id.receiptTotals), r.items, r.charges, r.printedTotal, r.totalAmount
+            findViewById(R.id.receiptTotals), r.items, r.charges, null, r.totalAmount
         )
     }
 

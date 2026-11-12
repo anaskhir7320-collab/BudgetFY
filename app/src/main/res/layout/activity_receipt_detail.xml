@@ -150,6 +150,19 @@
                             android:scaleType="centerCrop"
                             android:src="@drawable/receipt_placeholder" />
 
+                        <!-- Caption under the placeholder picture (no photo saved) -->
+                        <TextView
+                            android:id="@+id/noReceiptText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|center_horizontal"
+                            android:layout_marginBottom="14dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/no_receipt_found"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp"
+                            android:visibility="gone" />
+
                         <TextView
                             android:id="@+id/imageExpandHint"
                             android:layout_width="wrap_content"

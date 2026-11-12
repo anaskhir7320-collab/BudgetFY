@@ -245,9 +245,21 @@ class FirebaseRepository {
             }
         }
         ref.set(toSave).await()
+        val share = receipt.chargeShare()
         for (item in receipt.items) {
-            updateBudgetSpent(userId, item.category, item.price)
+            updateBudgetSpent(userId, item.category, item.price * share)
         }
+    }
+
+    /**
+     * Added tax, service charge and rounding are spread over the items'
+     * categories in proportion to their prices, so category budgets add up
+     * to what was actually paid. 1.0 for receipts without added charges
+     * (and for older receipts, where the total is the items sum).
+     */
+    private fun Receipt.chargeShare(): Double {
+        val itemsSum = items.sumOf { it.price }
+        return if (itemsSum > 0.0 && totalAmount > 0.0) totalAmount / itemsSum else 1.0
     }
 
     /** Returns the photo saved in Firestore for this receipt, or null. */
@@ -336,6 +348,7 @@ class FirebaseRepository {
 
     suspend fun deleteReceipt(receipt: Receipt) {
         try {
+            val share = receipt.chargeShare()
             for (item in receipt.items) {
                 val month = getCurrentMonth()
                 val snap = firestore.collection("budgets")
@@ -347,7 +360,7 @@ class FirebaseRepository {
                     val doc = snap.documents.first()
                     val cur = doc.getDouble("spent") ?: 0.0
                     firestore.collection("budgets").document(doc.id)
-                        .update("spent", (cur - item.price).coerceAtLeast(0.0)).await()
+                        .update("spent", (cur - item.price * share).coerceAtLeast(0.0)).await()
                 }
             }
             firestore.collection("receipts").document(receipt.id).delete().await()
@@ -390,8 +403,9 @@ class FirebaseRepository {
                         .update("spent", (cur + delta).coerceAtLeast(0.0)).await()
                 }
             }
-            adjust(oldItem.category, -oldItem.price)
-            adjust(newCategory, oldItem.price)
+            val moved = oldItem.price * receipt.chargeShare()
+            adjust(oldItem.category, -moved)
+            adjust(newCategory, moved)
         } catch (e: Exception) {
             Log.e("FirebaseRepo", "updateItemCategory error: ${e.message}")
         }

@@ -124,8 +124,8 @@
     <string name="transactions">Transactions</string>
     <string name="september_2026">September 2026</string>
     <string name="s_0_receipts_scanned">0 receipts scanned</string>
-    <string name="upload_from_camera">Upload from Camera</string>
-    <string name="upload_from_library">Upload from Library</string>
+    <string name="upload_from_camera">Take a photo</string>
+    <string name="upload_from_library">Choose from gallery</string>
     <string name="remove_card_image">Remove card image</string>
     <string name="remove_profile_picture">Remove profile picture</string>
     <string name="jan">Jan</string>
@@ -328,4 +328,5 @@
     <string name="dev_note">Still in development. Feedback helps us improve.</string>
     <string name="language_value_english">English (UK)</string>
     <string name="language_value_malay">Bahasa Melayu</string>
+    <string name="no_receipt_found">No receipt found</string>
 </resources>

@@ -50,15 +50,18 @@ class CategoryBudgetAdapter : RecyclerView.Adapter<CategoryBudgetAdapter.Categor
 
             progressBar.progress = percentage.coerceAtMost(100)
 
-            // Set color based on usage
+            // Same colours as the Home donut: the dot is always the category
+            // colour; the bar and status turn orange / red near or over the limit.
+            val context = itemView.context
+            val categoryColor = com.jmti.budgetfy.utils.CategoryStyle.color(context, category.name)
             val color = when {
-                percentage >= 100 -> Color.parseColor("#F44336")   // Red - exceeded
-                percentage >= 80 -> Color.parseColor("#FF9800")    // Orange - warning
-                else -> category.color                              // Normal color
+                percentage >= 100 -> androidx.core.content.ContextCompat.getColor(context, R.color.pct_over)
+                percentage >= 80 -> androidx.core.content.ContextCompat.getColor(context, R.color.pct_warning)
+                else -> categoryColor
             }
             colorView.background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(color)
+                setColor(categoryColor)
             }
             progressBar.setIndicatorColor(color)
 

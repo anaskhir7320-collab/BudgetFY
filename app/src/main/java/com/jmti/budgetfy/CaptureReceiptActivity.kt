@@ -137,8 +137,11 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 return
             }
             capturedBitmap = bitmap
-            // Placeholder uses fitCenter; real photos fill the frame.
+            // Placeholder uses fitCenter with room for its caption; real photos fill the frame.
             imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+            val edge = (1f * resources.displayMetrics.density).toInt()
+            imageView.setPadding(edge, edge, edge, edge)
+            findViewById<View>(R.id.noReceiptText).visibility = View.GONE
             imageView.setImageBitmap(bitmap)
             processButton.isEnabled = true
             startAnalysis(bitmap)
@@ -502,6 +505,20 @@ class CaptureReceiptActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * What the receipt actually cost: items plus any tax or charge added on
+     * top. The printed total is used when it agrees with that (it then also
+     * carries the 5-sen rounding); if the items were edited or the total was
+     * misread, items + added charges is used instead.
+     */
+    private fun amountPaid(items: List<ReceiptItem>): Double {
+        val expected = items.sumOf { it.price } +
+                currentCharges.filter { !it.inclusive }.sumOf { it.amount }
+        val printed = currentPrintedTotal
+        return if (printed != null && printed > 0.0 && kotlin.math.abs(printed - expected) <= 0.10) printed
+        else expected
+    }
+
     /** Updates the subtotal / tax / total card under the items list. */
     private fun refreshTotals() {
         val card = findViewById<View>(R.id.captureTotalsCard)
@@ -512,7 +529,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
         }
         card.visibility = View.VISIBLE
         com.jmti.budgetfy.utils.ReceiptTotals.bind(
-            card, items, currentCharges, currentPrintedTotal, items.sumOf { it.price }
+            card, items, currentCharges, null, amountPaid(items)
         )
     }
 
@@ -561,7 +578,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
         }
         saveButton.isEnabled = false
         progressBar.visibility = View.VISIBLE
-        val total = items.sumOf { it.price }
+        val total = amountPaid(items)
         val receipt = Receipt(
             userId = userId,
             totalAmount = total,

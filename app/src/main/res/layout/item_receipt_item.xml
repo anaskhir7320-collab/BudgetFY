@@ -30,7 +30,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:text="Item name"
+                android:text="@string/item_name"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp" />
 
@@ -69,7 +69,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Other"
+                        android:text="@string/other"
                         android:textColor="@color/accent_text"
                         android:textSize="11sp" />
 
@@ -78,7 +78,7 @@
                         android:layout_width="14dp"
                         android:layout_height="14dp"
                         android:layout_marginStart="2dp"
-                        android:contentDescription="Change category"
+                        android:contentDescription="@string/change_category"
                         android:src="@drawable/ic_chevron_down"
                         app:tint="@color/accent_text" />
                 </LinearLayout>
@@ -103,7 +103,7 @@
             android:layout_marginStart="2dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:contentDescription="Edit item"
+            android:contentDescription="@string/edit_item"
             android:focusable="true"
             android:padding="11dp"
             android:src="@drawable/ic_edit_outline"

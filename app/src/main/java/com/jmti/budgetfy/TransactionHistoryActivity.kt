@@ -25,7 +25,7 @@ class TransactionHistoryActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.receiptsRecyclerView)
 
         // Get data passed from HistoryActivity
-        val monthYear = intent.getStringExtra("MONTH_YEAR") ?: "History"
+        val monthYear = intent.getStringExtra("MONTH_YEAR") ?: getString(R.string.history_title)
         val receiptsJson = intent.getStringExtra("RECEIPTS_LIST")
 
         monthTitleTextView.text = monthYear
@@ -37,7 +37,7 @@ class TransactionHistoryActivity : AppCompatActivity() {
         // ✅ NEW: Calculate total spent and count
         val totalSpent = receipts.sumOf { it.totalAmount }
         totalSpentTextView.text = "RM ${String.format("%.2f", totalSpent)}"
-        itemCountTextView.text = "${receipts.size} receipts scanned"
+        itemCountTextView.text = getString(R.string.n_receipts_scanned, receipts.size)
 
         // Set up the adapter
         val adapter = ExpenseAdapter { receipt ->

@@ -13,7 +13,7 @@
         android:background="@color/page_bg"
         android:theme="@style/ThemeOverlay.App.Toolbar"
         app:navigationIcon="?attr/homeAsUpIndicator"
-        app:title="Budget"
+        app:title="@string/budget"
         app:titleTextColor="@color/text_primary" />
 
     <ScrollView
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:letterSpacing="-0.02"
-                android:text="Monthly budget"
+                android:text="@string/monthly_budget"
                 android:textColor="@color/text_primary"
                 android:textSize="26sp" />
 
@@ -41,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Set how much you plan to spend each month"
+                android:text="@string/set_how_much_you_plan_to_spend_each_mont"
                 android:textAppearance="@style/TextAppearance.App.Caption"
                 android:textSize="13sp" />
 
@@ -82,14 +82,14 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Overall budget"
+                                android:text="@string/overall_budget"
                                 android:textAppearance="@style/TextAppearance.App.Title" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="1dp"
-                                android:text="Your total spending limit for the month"
+                                android:text="@string/your_total_spending_limit_for_the_month"
                                 android:textAppearance="@style/TextAppearance.App.Caption" />
                         </LinearLayout>
                     </LinearLayout>
@@ -99,7 +99,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:hint="Monthly limit"
+                        android:hint="@string/monthly_limit"
                         app:prefixText="RM "
                         app:prefixTextColor="@color/text_secondary">
 
@@ -116,7 +116,7 @@
                         android:layout_height="50dp"
                         android:layout_marginTop="12dp"
                         android:minHeight="50dp"
-                        android:text="Save overall budget" />
+                        android:text="@string/save_overall_budget" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -157,14 +157,14 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Category budget"
+                                android:text="@string/category_budget"
                                 android:textAppearance="@style/TextAppearance.App.Title" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="1dp"
-                                android:text="Set a limit for one category"
+                                android:text="@string/set_a_limit_for_one_category"
                                 android:textAppearance="@style/TextAppearance.App.Caption" />
                         </LinearLayout>
                     </LinearLayout>
@@ -174,7 +174,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:hint="Category">
+                        android:hint="@string/category">
 
                         <AutoCompleteTextView
                             android:id="@+id/categoryDropdown"
@@ -190,7 +190,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:hint="Category limit"
+                        android:hint="@string/category_limit"
                         app:prefixText="RM "
                         app:prefixTextColor="@color/text_secondary">
 
@@ -219,7 +219,7 @@
                         android:layout_height="50dp"
                         android:layout_marginTop="14dp"
                         android:minHeight="50dp"
-                        android:text="Save category budget" />
+                        android:text="@string/save_category_budget" />
 
                     <ProgressBar
                         android:id="@+id/progressBar"
@@ -237,7 +237,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Your category budgets"
+                android:text="@string/your_category_budgets"
                 android:textAppearance="@style/TextAppearance.App.Title" />
 
             <TextView
@@ -245,7 +245,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:layout_marginBottom="10dp"
-                android:text="Spending this month against each limit"
+                android:text="@string/spending_this_month_against_each_limit"
                 android:textAppearance="@style/TextAppearance.App.Caption" />
 
             <com.google.android.material.card.MaterialCardView
@@ -269,7 +269,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:paddingVertical="24dp"
-                        android:text="No category budgets yet.\nAdd one above to track it here."
+                        android:text="@string/no_category_budgets_yet_nadd_one_above_t"
                         android:textColor="@color/text_tertiary"
                         android:textSize="13sp"
                         android:visibility="gone" />

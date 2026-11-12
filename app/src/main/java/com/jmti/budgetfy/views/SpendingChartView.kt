@@ -129,7 +129,7 @@ class SpendingChartView @JvmOverloads constructor(
 
         val shown = daily.take(today)
         if (shown.sum() <= 0.0) {
-            canvas.drawText("No spending yet this month", (left + right) / 2, (top + bottom) / 2, emptyPaint)
+            canvas.drawText(context.getString(com.jmti.budgetfy.R.string.no_spending_yet), (left + right) / 2, (top + bottom) / 2, emptyPaint)
             return
         }
 
@@ -160,7 +160,7 @@ class SpendingChartView @JvmOverloads constructor(
             canvas.drawLine(left, bottom, right, yFor(budget), pacePaint)
             val by = yFor(budget)
             canvas.drawLine(left, by, right, by, budgetPaint)
-            val label = "Budget RM %.0f".format(budget)
+            val label = context.getString(com.jmti.budgetfy.R.string.budget_rm, "%.0f".format(budget))
             canvas.drawText(label, right - labelPaint.measureText(label), by - 5 * density, labelPaint)
         }
 

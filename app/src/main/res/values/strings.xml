@@ -1,3 +1,309 @@
 <resources>
     <string name="app_name">BudgetFY</string>
+
+    <!-- Screen text (layouts and menus) -->
+    <string name="budget">Budget</string>
+    <string name="monthly_budget">Monthly budget</string>
+    <string name="set_how_much_you_plan_to_spend_each_mont">Set how much you plan to spend each month</string>
+    <string name="overall_budget">Overall budget</string>
+    <string name="your_total_spending_limit_for_the_month">Your total spending limit for the month</string>
+    <string name="monthly_limit">Monthly limit</string>
+    <string name="save_overall_budget">Save overall budget</string>
+    <string name="category_budget">Category budget</string>
+    <string name="set_a_limit_for_one_category">Set a limit for one category</string>
+    <string name="category">Category</string>
+    <string name="category_limit">Category limit</string>
+    <string name="save_category_budget">Save category budget</string>
+    <string name="your_category_budgets">Your category budgets</string>
+    <string name="spending_this_month_against_each_limit">Spending this month against each limit</string>
+    <string name="no_category_budgets_yet_nadd_one_above_t">No category budgets yet.\nAdd one above to track it here.</string>
+    <string name="capture_receipt">Capture Receipt</string>
+    <string name="scan">Scan</string>
+    <string name="gallery">Gallery</string>
+    <string name="read">Read</string>
+    <string name="store">Store</string>
+    <string name="edit">Edit</string>
+    <string name="items">Items</string>
+    <string name="add_item">+ Add item</string>
+    <string name="save_receipt">Save receipt</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="save">Save</string>
+    <string name="edit_profile_picture">Edit profile picture</string>
+    <string name="change_photo">Change photo</string>
+    <string name="profile">Profile</string>
+    <string name="display_name">Display name</string>
+    <string name="your_name">Your name</string>
+    <string name="spending_card">Spending card</string>
+    <string name="how_the_total_spent_card_looks_on_your_h">How the Total Spent card looks on your home screen</string>
+    <string name="standard">Standard</string>
+    <string name="expanded">Expanded</string>
+    <string name="card_preview">Card preview</string>
+    <string name="total_spent_this_month">Total Spent This Month</string>
+    <string name="of_rm_0_00_budget">of RM 0.00 budget</string>
+    <string name="preview">Preview</string>
+    <string name="upload_your_own">Upload your own</string>
+    <string name="remove">Remove</string>
+    <string name="ready_made_backgrounds">Ready-made backgrounds</string>
+    <string name="tap_one_to_use_it">Tap one to use it</string>
+    <string name="background_1">Background 1</string>
+    <string name="selected">Selected</string>
+    <string name="background_2">Background 2</string>
+    <string name="background_3">Background 3</string>
+    <string name="background_4">Background 4</string>
+    <string name="history">History</string>
+    <string name="previous_year">Previous year</string>
+    <string name="next_year">Next year</string>
+    <string name="spent_in_2026">Spent in 2026</string>
+    <string name="receipts">Receipts</string>
+    <string name="active_days">Active days</string>
+    <string name="monthly_avg">Monthly avg</string>
+    <string name="calendar">Calendar</string>
+    <string name="tap_a_month_or_a_highlighted_day_to_see">Tap a month or a highlighted day to see its receipts</string>
+    <string name="welcome_back">Welcome back</string>
+    <string name="log_in_to_keep_track_of_your_spending">Log in to keep track of your spending</string>
+    <string name="email_address">Email Address</string>
+    <string name="password">Password</string>
+    <string name="log_in">Log in</string>
+    <string name="don_t_have_an_account_register">Don\'t have an account? Register</string>
+    <string name="good_day">Good day</string>
+    <string name="november_2026">November 2026</string>
+    <string name="background">Background</string>
+    <string name="s_0_of_budget_used" formatted="false">0% of budget used</string>
+    <string name="alert_message">Alert message</string>
+    <string name="daily_average">Daily average</string>
+    <string name="left_per_day">Left per day</string>
+    <string name="spending_trend">Spending trend</string>
+    <string name="s_1_nov">1 Nov</string>
+    <string name="s_30_nov">30 Nov</string>
+    <string name="running_total">Running total</string>
+    <string name="per_day">Per day</string>
+    <string name="budget_by_category">Budget by category</string>
+    <string name="toggle_categories">Toggle categories</string>
+    <string name="recent_transactions">Recent transactions</string>
+    <string name="see_all">See all</string>
+    <string name="no_receipts_yet_this_month_ntap_scan_to">No receipts yet this month.\nTap Scan to add your first one.</string>
+    <string name="scan_receipt">Scan receipt</string>
+    <string name="budget_settings">Budget settings</string>
+    <string name="toggle_budget_settings">Toggle budget settings</string>
+    <string name="reset_overall_budget_limit">Reset Overall Budget Limit</string>
+    <string name="reset_the_overall_budget_to_rm_0_00">Reset the overall budget to RM 0.00</string>
+    <string name="full_reset">Full Reset</string>
+    <string name="delete_all_receipts_budgets_for_this_mon">Delete all receipts + budgets for this month</string>
+    <string name="display_settings">Display Settings</string>
+    <string name="language">Language</string>
+    <string name="english_uk">🇬🇧  English (UK)</string>
+    <string name="app_theme_style">App Theme Style</string>
+    <string name="day">Day</string>
+    <string name="night">Night</string>
+    <string name="sources">Sources</string>
+    <string name="rate">Rate</string>
+    <string name="give_budgetfy_a_rating_on_the_play_store">Give BudgetFY a rating on the Play Store</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="send_feedback_or_report_an_issue">Send feedback or report an issue</string>
+    <string name="terms_and_conditions">Terms and Conditions</string>
+    <string name="read_through_our_terms_and_conditions">Read through our Terms and Conditions</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="learn_how_budgetfy_uses_your_data">Learn how BudgetFY uses your data</string>
+    <string name="logout">Logout</string>
+    <string name="testing_app_check_token">Testing: App Check token</string>
+    <string name="send_this_to_the_app_owner_to_enable_rec">Send this to the app owner to enable receipt reading</string>
+    <string name="budgetfy_is_still_in_production_any_erro">BudgetFY is still in production. Any errors that occur are our responsibility. Please feel free to leave a review so we can continue improving the quality of our app.</string>
+    <string name="receipt_photo">Receipt photo</string>
+    <string name="receipt_image">Receipt image</string>
+    <string name="tap_to_expand">Tap to expand</string>
+    <string name="items_purchased">Items purchased</string>
+    <string name="tap_a_category_to_change_it">Tap a category to change it</string>
+    <string name="create_your_account">Create your account</string>
+    <string name="start_tracking_your_expenses_today">Start tracking your expenses today</string>
+    <string name="full_name">Full Name</string>
+    <string name="password_min_6_characters">Password (min 6 characters)</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="create_account">Create account</string>
+    <string name="already_have_an_account_log_in">Already have an account? Log in</string>
+    <string name="transactions">Transactions</string>
+    <string name="september_2026">September 2026</string>
+    <string name="s_0_receipts_scanned">0 receipts scanned</string>
+    <string name="upload_from_camera">Upload from Camera</string>
+    <string name="upload_from_library">Upload from Library</string>
+    <string name="remove_card_image">Remove card image</string>
+    <string name="remove_profile_picture">Remove profile picture</string>
+    <string name="jan">Jan</string>
+    <string name="s_0_used" formatted="false">0% used</string>
+    <string name="s_0_items">0 items</string>
+    <string name="item_name">Item name</string>
+    <string name="other">Other</string>
+    <string name="change_category">Change category</string>
+    <string name="edit_item">Edit item</string>
+    <string name="items_subtotal">Items subtotal</string>
+    <string name="rounding_and_adjustments">Rounding &amp; adjustments</string>
+    <string name="total_paid">Total paid</string>
+    <string name="home">Home</string>
+    <string name="rename">Rename</string>
+    <string name="delete">Delete</string>
+
+    <!-- Text used from code -->
+    <string name="coming_soon">Coming soon</string>
+    <string name="token_not_ready">Token not ready yet. Scan a receipt once, then try again.</string>
+    <string name="app_check_token">App Check token</string>
+    <string name="token_send_message">Send this code to the app owner. Keep it private.\n\n%1$s</string>
+    <string name="copy">Copy</string>
+    <string name="token_copied">Token copied</string>
+    <string name="share">Share</string>
+    <string name="token_share_text">BudgetFY App Check token: %1$s</string>
+    <string name="send_token">Send token</string>
+    <string name="close">Close</string>
+    <string name="no_email">No email</string>
+    <string name="user">User</string>
+    <string name="reset_overall_title">Reset overall budget?</string>
+    <string name="reset_overall_message">This will:\n\n• Set overall budget to RM 0.00\n• Delete all category budgets for this month\n• Keep receipts\n\nYou\'ll need to setup budgets again.\n\nContinue?</string>
+    <string name="reset">Reset</string>
+    <string name="overall_reset_done">✅ Overall budget reset to RM 0.00</string>
+    <string name="failed">❌ Failed</string>
+    <string name="full_reset_title">Full reset?</string>
+    <string name="full_reset_message">This will DELETE:\n\n• All receipts for this month\n• All category budgets for this month\n• Overall budget reset to RM 0.00\n\n⚠️ This CANNOT be undone.</string>
+    <string name="delete_all">Delete All</string>
+    <string name="full_reset_done">✅ Full reset complete</string>
+    <string name="logout_title">Log out?</string>
+    <string name="logout_message">Are you sure you want to logout?</string>
+    <string name="logged_out">Logged out</string>
+    <string name="camera_permission_required">Camera permission required</string>
+    <string name="receipt_scanned_tap_read">Receipt scanned! Tap Read.</string>
+    <string name="photo_captured_tap_read">Photo captured! Tap Read.</string>
+    <string name="image_loaded_tap_read">Image loaded! Tap Read.</string>
+    <string name="could_not_read_image">Could not read that image</string>
+    <string name="error_with_message">Error: %1$s</string>
+    <string name="removed_item">Removed: %1$s</string>
+    <string name="store_name">Store name</string>
+    <string name="store_name_helper">Fix it if it was read wrong. It will be remembered next time.</string>
+    <string name="name_cannot_be_empty">Name cannot be empty</string>
+    <string name="camera_error">Camera error: %1$s</string>
+    <string name="no_items_found_add">No items found. Tap + Add item.</string>
+    <string name="found_items_mismatch">Found %1$d items, but they add up to RM %2$s while the receipt total is RM %3$s. Please check the items.</string>
+    <string name="found_items_ok">Found %1$d items. Tap any to edit or delete.</string>
+    <string name="double_checked">\n(Double-checked with the accurate model.)</string>
+    <string name="ai_unavailable">\n(AI unavailable: %1$s. Used on-device reading.)</string>
+    <string name="quantity">Quantity</string>
+    <string name="price">Price</string>
+    <string name="add_item_title">Add item</string>
+    <string name="add">Add</string>
+    <string name="enter_valid_name_price">Enter valid name and price</string>
+    <string name="added_item">Added: %1$s</string>
+    <string name="no_valid_items">No valid items</string>
+    <string name="saved_amount">Saved: RM %1$s</string>
+    <string name="receipt_not_found">Receipt not found</string>
+    <string name="tap_to_collapse">Tap to collapse</string>
+    <string name="category_updated_to">Category updated to %1$s</string>
+    <string name="one_item">1 item</string>
+    <string name="n_items">%1$d items</string>
+    <string name="loading_photo">Loading photo…</string>
+    <string name="receipt_default">Receipt</string>
+    <string name="rename_receipt">Rename receipt</string>
+    <string name="renamed_to">Renamed to \"%1$s\"</string>
+    <string name="delete_receipt_title">Delete receipt?</string>
+    <string name="delete_receipt_message">This will remove the receipt and reverse its budget impact. Cannot be undone.</string>
+    <string name="receipt_deleted">Receipt deleted</string>
+    <string name="choose_a_category">Choose a category</string>
+    <string name="price_must_be_positive">Price must be more than 0</string>
+    <string name="delete_item_title">Delete item?</string>
+    <string name="delete_item_message">Remove \"%1$s\" from this receipt?</string>
+    <string name="discard_changes_title">Discard changes?</string>
+    <string name="discard_changes_message">Your edits will not be saved.</string>
+    <string name="discard">Discard</string>
+    <string name="keep_editing">Keep editing</string>
+    <string name="camera_option_coming_soon">Camera option coming soon</string>
+    <string name="profile_updated">Profile updated</string>
+    <string name="good_morning">Good morning</string>
+    <string name="good_afternoon">Good afternoon</string>
+    <string name="good_evening">Good evening</string>
+    <string name="setup_overall_first">Please setup the overall budget limit first</string>
+    <string name="error_loading_data">Error loading data: %1$s</string>
+    <string name="of_budget">of RM %1$s budget</string>
+    <string name="percent_budget_used">%1$d%% of budget used</string>
+    <string name="rm_left">RM %1$s left</string>
+    <string name="rm_over">RM %1$s over</string>
+    <string name="alert_over">You\'ve gone over your monthly budget by RM %1$s.</string>
+    <string name="alert_used">You\'ve used %1$d%% of your monthly budget.</string>
+    <string name="donut_of">of RM %1$s · %2$d%%</string>
+    <string name="this_month">This month</string>
+    <string name="on_track">On track</string>
+    <string name="ahead_of_pace">Ahead of pace</string>
+    <string name="max_per_category">Max per category: RM %1$s</string>
+    <string name="set_overall_first">Set overall budget first</string>
+    <string name="enter_an_amount">Enter an amount</string>
+    <string name="enter_valid_amount">Enter a valid amount</string>
+    <string name="overall_budget_set">✅ Overall budget set: RM %1$s</string>
+    <string name="failed_to_save">Failed to save</string>
+    <string name="fill_all_fields">Please fill in all fields</string>
+    <string name="enter_valid_budget">Please enter a valid budget amount</string>
+    <string name="category_limit_exceeds">Category limit (RM %1$s) can\'t exceed overall budget (RM %2$s)</string>
+    <string name="saved_category_budget">Saved: %1$s · RM %2$s</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <string name="password_min_6">Password must be at least 6 characters</string>
+    <string name="registration_successful">Registration successful!</string>
+    <string name="registration_failed">Registration failed. Please try again.</string>
+    <string name="login_successful">Login successful!</string>
+    <string name="login_failed">Login failed. Check your email and password.</string>
+    <string name="error_loading_history">Error loading history: %1$s</string>
+    <string name="spent_in_year">Spent in %1$s</string>
+    <string name="n_receipts_scanned">%1$d receipts scanned</string>
+    <string name="over_budget_by">Over budget by RM %1$s</string>
+    <string name="pct_used_almost">%1$d%% used · almost at limit</string>
+    <string name="pct_used">%1$d%% used</string>
+    <string name="items_subtotal_one">Items subtotal (1 item)</string>
+    <string name="items_subtotal_n">Items subtotal (%1$d items)</string>
+    <string name="charge_included">%1$s (included)</string>
+    <string name="no_spending_yet">No spending yet this month</string>
+    <string name="budget_rm">Budget RM %1$s</string>
+    <string name="history_title">History</string>
+    <string name="language_title">Language</string>
+    <string name="language_english">🇬🇧  English (UK)</string>
+    <string name="language_malay">🇲🇾  Bahasa Melayu</string>
+    <string name="cat_food_and_dining">Food &amp; Dining</string>
+    <string name="cat_groceries_name">Groceries</string>
+    <string name="cat_shopping">Shopping</string>
+    <string name="cat_transportation_name">Transportation</string>
+    <string name="cat_entertainment_name">Entertainment</string>
+    <string name="cat_personal_care_name">Personal Care</string>
+    <string name="cat_health_name">Health</string>
+    <string name="cat_education_name">Education</string>
+    <string name="cat_utilities_name">Utilities</string>
+    <string name="cat_other_name">Other</string>
+    <string name="charge_sst">SST</string>
+    <string name="charge_sales_tax">Sales Tax</string>
+    <string name="charge_service_tax">Service Tax</string>
+    <string name="charge_gst">GST</string>
+    <string name="charge_service_charge">Service Charge</string>
+    <string name="charge_tourism_tax">Tourism Tax</string>
+    <string name="charge_other">Other</string>
+    <string name="charge_tax">Tax</string>
+
+    <string-array name="month_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <string-array name="month_full">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
 </resources>

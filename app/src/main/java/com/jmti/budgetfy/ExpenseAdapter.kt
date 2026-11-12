@@ -46,7 +46,7 @@ class ExpenseAdapter(
         private val rowDivider: View = itemView.findViewById(R.id.rowDivider)
 
         fun bind(receipt: Receipt, isLast: Boolean) {
-            val name = receipt.storeName.ifEmpty { "Receipt" }
+            val name = receipt.storeName.ifEmpty { itemView.context.getString(R.string.receipt_default) }
             storeNameTextView.text = name
             val spend = CategoryStyle.spendByCategory(receipt)
             spendBar.setSpend(spend)
@@ -57,7 +57,8 @@ class ExpenseAdapter(
             dateTextView.text = dateFormat.format(receipt.date.toDate())
 
             val count = receipt.items.size
-            itemCountTextView.text = if (count == 1) "1 item" else "$count items"
+            itemCountTextView.text = if (count == 1) itemView.context.getString(R.string.one_item)
+                else itemView.context.getString(R.string.n_items, count)
 
             // Rows share one card; the last row needs no divider under it.
             rowDivider.visibility = if (isLast) View.GONE else View.VISIBLE

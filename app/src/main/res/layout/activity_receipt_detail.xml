@@ -127,7 +127,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="22dp"
                     android:layout_marginBottom="10dp"
-                    android:text="Receipt photo"
+                    android:text="@string/receipt_photo"
                     android:textAppearance="@style/TextAppearance.App.Title" />
 
                 <com.google.android.material.card.MaterialCardView
@@ -146,7 +146,7 @@
                             android:id="@+id/receiptImageDetail"
                             android:layout_width="match_parent"
                             android:layout_height="200dp"
-                            android:contentDescription="Receipt image"
+                            android:contentDescription="@string/receipt_image"
                             android:scaleType="centerCrop"
                             android:src="@drawable/receipt_placeholder" />
 
@@ -159,7 +159,7 @@
                             android:background="@drawable/bg_pill"
                             android:gravity="center"
                             android:paddingHorizontal="12dp"
-                            android:text="Tap to expand"
+                            android:text="@string/tap_to_expand"
                             android:textColor="@color/text_primary"
                             android:textSize="11sp" />
                     </FrameLayout>
@@ -170,7 +170,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="22dp"
-                    android:text="Items purchased"
+                    android:text="@string/items_purchased"
                     android:textAppearance="@style/TextAppearance.App.Title" />
 
                 <TextView
@@ -178,7 +178,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="10dp"
-                    android:text="Tap a category to change it"
+                    android:text="@string/tap_a_category_to_change_it"
                     android:textAppearance="@style/TextAppearance.App.Caption" />
 
                 <com.google.android.material.card.MaterialCardView

@@ -87,7 +87,7 @@ class AddBudgetActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(
             this,
             R.layout.item_dropdown,
-            categories.distinct().sorted()
+            categories.distinct().sorted().map { com.jmti.budgetfy.utils.CategoryNames.display(this, it) }
         )
         categoryDropdown.setAdapter(adapter)
     }
@@ -105,9 +105,9 @@ class AddBudgetActivity : AppCompatActivity() {
                 currentOverallBudget = overall
                 if (overall > 0) {
                     overallBudgetEditText.setText(String.format("%.2f", overall))
-                    maxHintTextView.text = "Max per category: RM ${String.format("%.2f", overall)}"
+                    maxHintTextView.text = getString(R.string.max_per_category, String.format("%.2f", overall))
                 } else {
-                    maxHintTextView.text = "Set overall budget first"
+                    maxHintTextView.text = getString(R.string.set_overall_first)
                 }
             }
         }
@@ -116,12 +116,12 @@ class AddBudgetActivity : AppCompatActivity() {
     private fun saveOverall() {
         val text = overallBudgetEditText.text.toString().trim()
         if (text.isEmpty()) {
-            Toast.makeText(this, "Enter an amount", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.enter_an_amount), Toast.LENGTH_SHORT).show()
             return
         }
         val amount = text.toDoubleOrNull()
         if (amount == null || amount <= 0) {
-            Toast.makeText(this, "Enter a valid amount", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.enter_valid_amount), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -136,46 +136,46 @@ class AddBudgetActivity : AppCompatActivity() {
                 saveOverallButton.isEnabled = true
                 if (success) {
                     currentOverallBudget = amount
-                    maxHintTextView.text = "Max per category: RM ${String.format("%.2f", amount)}"
+                    maxHintTextView.text = getString(R.string.max_per_category, String.format("%.2f", amount))
                     Toast.makeText(
                         this@AddBudgetActivity,
-                        "✅ Overall budget set: RM ${String.format("%.2f", amount)}",
+                        getString(R.string.overall_budget_set, String.format("%.2f", amount)),
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
-                    Toast.makeText(this@AddBudgetActivity, "Failed to save", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddBudgetActivity, getString(R.string.failed_to_save), Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
     private fun saveBudget() {
-        val category = categoryDropdown.text.toString().trim()
+        val category = com.jmti.budgetfy.utils.CategoryNames.toEnglish(this, categoryDropdown.text.toString().trim())
         val limitText = limitEditText.text.toString().trim()
 
         if (currentOverallBudget <= 0) {
             Toast.makeText(
                 this,
-                "Please setup the overall budget limit first",
+                getString(R.string.setup_overall_first),
                 Toast.LENGTH_LONG
             ).show()
             return
         }
         if (category.isEmpty() || limitText.isEmpty()) {
-            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.fill_all_fields), Toast.LENGTH_SHORT).show()
             return
         }
 
         val limit = limitText.toDoubleOrNull()
         if (limit == null || limit <= 0) {
-            Toast.makeText(this, "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.enter_valid_budget), Toast.LENGTH_SHORT).show()
             return
         }
 
         if (limit > currentOverallBudget) {
             Toast.makeText(
                 this,
-                "Category limit (RM ${String.format("%.2f", limit)}) can't exceed overall budget (RM ${String.format("%.2f", currentOverallBudget)})",
+                getString(R.string.category_limit_exceeds, String.format("%.2f", limit), String.format("%.2f", currentOverallBudget)),
                 Toast.LENGTH_LONG
             ).show()
             return
@@ -193,14 +193,14 @@ class AddBudgetActivity : AppCompatActivity() {
                 if (success) {
                     Toast.makeText(
                         this@AddBudgetActivity,
-                        "Saved: $category · RM ${String.format("%.2f", limit)}",
+                        getString(R.string.saved_category_budget, com.jmti.budgetfy.utils.CategoryNames.display(this@AddBudgetActivity, category), String.format("%.2f", limit)),
                         Toast.LENGTH_LONG
                     ).show()
                     limitEditText.setText("")
                     categoryDropdown.setText("", false)
                     loadCategoryBudgets()
                 } else {
-                    Toast.makeText(this@AddBudgetActivity, "Failed to save", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AddBudgetActivity, getString(R.string.failed_to_save), Toast.LENGTH_SHORT).show()
                 }
             }
         }

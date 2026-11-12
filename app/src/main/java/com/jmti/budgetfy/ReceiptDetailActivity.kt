@@ -57,7 +57,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
         } catch (e: Exception) { null }
 
         if (receipt == null) {
-            Toast.makeText(this, "Receipt not found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.receipt_not_found), Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -88,12 +88,12 @@ class ReceiptDetailActivity : AppCompatActivity() {
                 lp.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
                 receiptImage.adjustViewBounds = true
                 receiptImage.scaleType = ImageView.ScaleType.FIT_CENTER
-                imageExpandHint.text = "Tap to collapse"
+                imageExpandHint.text = getString(R.string.tap_to_collapse)
             } else {
                 lp.height = (200 * resources.displayMetrics.density).toInt()
                 receiptImage.adjustViewBounds = false
                 receiptImage.scaleType = ImageView.ScaleType.CENTER_CROP
-                imageExpandHint.text = "Tap to expand"
+                imageExpandHint.text = getString(R.string.tap_to_expand)
             }
             receiptImage.layoutParams = lp
         }
@@ -115,7 +115,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
                             bindTotals(receipt!!)
                             Toast.makeText(
                                 this@ReceiptDetailActivity,
-                                "Category updated to ${newItem.category}",
+                                getString(R.string.category_updated_to, com.jmti.budgetfy.utils.CategoryNames.display(this@ReceiptDetailActivity, newItem.category)),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -145,7 +145,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
 
         val dateFormat = SimpleDateFormat("d MMM yyyy · h:mm a", Locale.getDefault())
         val count = r.items.size
-        val countText = if (count == 1) "1 item" else "$count items"
+        val countText = if (count == 1) getString(R.string.one_item) else getString(R.string.n_items, count)
         dateTextView.text = "${dateFormat.format(r.date.toDate())} · $countText"
 
         bindCategories(r)
@@ -180,12 +180,12 @@ class ReceiptDetailActivity : AppCompatActivity() {
     private fun showPhotoHint() {
         receiptImage.background = null
         imageExpandHint.visibility = View.VISIBLE
-        imageExpandHint.text = "Tap to expand"
+        imageExpandHint.text = getString(R.string.tap_to_expand)
     }
 
     private fun loadCloudPhoto(receiptId: String) {
         imageExpandHint.visibility = View.VISIBLE
-        imageExpandHint.text = "Loading photo…"
+        imageExpandHint.text = getString(R.string.loading_photo)
         CoroutineScope(Dispatchers.IO).launch {
             val bytes = firebaseRepo.getReceiptImage(receiptId)
             val bitmap = bytes?.let {
@@ -206,7 +206,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
     }
 
     private fun setStoreName(name: String) {
-        val shown = name.ifEmpty { "Receipt" }
+        val shown = name.ifEmpty { getString(R.string.receipt_default) }
         storeNameTextView.text = shown
         toolbar.title = shown
     }
@@ -235,7 +235,8 @@ class ReceiptDetailActivity : AppCompatActivity() {
                 setSize((7 * dp).toInt(), (7 * dp).toInt())
             }
             val chip = TextView(this).apply {
-                text = if (usePrices) "$category  RM ${String.format("%.2f", amount)}" else category
+                val shownName = com.jmti.budgetfy.utils.CategoryNames.display(this@ReceiptDetailActivity, category)
+                text = if (usePrices) "$shownName  RM ${String.format("%.2f", amount)}" else shownName
                 textSize = 12f
                 setTextColor(color)
                 setCompoundDrawablesRelativeWithIntrinsicBounds(dot, null, null, null)
@@ -253,20 +254,20 @@ class ReceiptDetailActivity : AppCompatActivity() {
 
     private fun showRenameDialog() {
         val form = com.jmti.budgetfy.utils.DialogForm(this)
-        val input = form.field("Store name", receipt?.storeName ?: "")
+        val input = form.field(getString(R.string.store_name), receipt?.storeName ?: "")
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Rename receipt")
+            .setTitle(getString(R.string.rename_receipt))
             .setView(form.view)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
                 val newName = input.text.toString().trim()
                 if (newName.isEmpty()) {
-                    Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.name_cannot_be_empty), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 renameReceipt(newName)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -279,7 +280,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
                 setStoreName(newName)
                 Toast.makeText(
                     this@ReceiptDetailActivity,
-                    "Renamed to \"$newName\"",
+                    getString(R.string.renamed_to, newName),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -288,10 +289,10 @@ class ReceiptDetailActivity : AppCompatActivity() {
 
     private fun confirmDelete() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Delete receipt?")
-            .setMessage("This will remove the receipt and reverse its budget impact. Cannot be undone.")
-            .setPositiveButton("Delete") { _, _ -> deleteReceipt() }
-            .setNegativeButton("Cancel", null)
+            .setTitle(getString(R.string.delete_receipt_title))
+            .setMessage(getString(R.string.delete_receipt_message))
+            .setPositiveButton(getString(R.string.delete)) { _, _ -> deleteReceipt() }
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -302,7 +303,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     this@ReceiptDetailActivity,
-                    "Receipt deleted",
+                    getString(R.string.receipt_deleted),
                     Toast.LENGTH_SHORT
                 ).show()
                 finish()

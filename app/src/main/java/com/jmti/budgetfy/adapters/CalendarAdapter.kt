@@ -62,7 +62,7 @@ class CalendarAdapter(
         val monthReceipts = receiptsByMonth[month]
         val total = monthReceipts.sumOf { it.totalAmount }
 
-        holder.monthNameTextView.text = monthNames[month]
+        holder.monthNameTextView.text = context.resources.getStringArray(R.array.month_short)[month]
         holder.monthTotalTextView.text = if (total > 0) compactRm(total) else ""
 
         val isCurrentMonth = year == now.get(Calendar.YEAR) && month == now.get(Calendar.MONTH)
@@ -76,7 +76,7 @@ class CalendarAdapter(
         // The whole card opens this month's receipts.
         holder.monthCard.setOnClickListener {
             val intent = Intent(context, TransactionHistoryActivity::class.java)
-            intent.putExtra("MONTH_YEAR", "${fullMonthNames[month]} $year")
+            intent.putExtra("MONTH_YEAR", "${context.resources.getStringArray(R.array.month_full)[month]} $year")
             intent.putExtra("RECEIPTS_LIST", Gson().toJson(monthReceipts))
             context.startActivity(intent)
         }

@@ -18,7 +18,7 @@
             android:background="@color/page_bg"
             android:theme="@style/ThemeOverlay.App.Toolbar"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="Transactions"
+            app:title="@string/transactions"
             app:titleTextColor="@color/text_primary" />
 
         <androidx.core.widget.NestedScrollView
@@ -48,7 +48,7 @@
                     android:id="@+id/monthTitleTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="September 2026"
+                    android:text="@string/september_2026"
                     android:textSize="14sp"
                     android:textColor="@color/text_secondary" />
 
@@ -67,7 +67,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="0 receipts scanned"
+                    android:text="@string/s_0_receipts_scanned"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary" />
 

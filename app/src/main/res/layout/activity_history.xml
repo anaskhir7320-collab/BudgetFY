@@ -18,7 +18,7 @@
             android:background="@color/page_bg"
             android:theme="@style/ThemeOverlay.App.Toolbar"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="History"
+            app:title="@string/history"
             app:titleTextColor="@color/text_primary" />
 
         <androidx.core.widget.NestedScrollView
@@ -58,7 +58,7 @@
                         android:layout_width="38dp"
                         android:layout_height="38dp"
                         android:background="@drawable/bg_pill"
-                        android:contentDescription="Previous year"
+                        android:contentDescription="@string/previous_year"
                         android:padding="8dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_chevron_left" />
@@ -69,7 +69,7 @@
                         android:layout_height="38dp"
                         android:layout_marginStart="8dp"
                         android:background="@drawable/bg_pill"
-                        android:contentDescription="Next year"
+                        android:contentDescription="@string/next_year"
                         android:padding="8dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_chevron_right"
@@ -96,7 +96,7 @@
                             android:id="@+id/yearSpentLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Spent in 2026"
+                            android:text="@string/spent_in_2026"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -132,7 +132,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Receipts"
+                                    android:text="@string/receipts"
                                     android:textAppearance="@style/TextAppearance.App.StatLabel" />
 
                                 <TextView
@@ -153,7 +153,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Active days"
+                                    android:text="@string/active_days"
                                     android:textAppearance="@style/TextAppearance.App.StatLabel" />
 
                                 <TextView
@@ -174,7 +174,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Monthly avg"
+                                    android:text="@string/monthly_avg"
                                     android:textAppearance="@style/TextAppearance.App.StatLabel" />
 
                                 <TextView
@@ -195,7 +195,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="24dp"
-                    android:text="Calendar"
+                    android:text="@string/calendar"
                     android:textAppearance="@style/TextAppearance.App.Title" />
 
                 <TextView
@@ -204,7 +204,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="8dp"
-                    android:text="Tap a month or a highlighted day to see its receipts"
+                    android:text="@string/tap_a_month_or_a_highlighted_day_to_see"
                     android:textAppearance="@style/TextAppearance.App.Caption" />
 
                 <androidx.recyclerview.widget.RecyclerView

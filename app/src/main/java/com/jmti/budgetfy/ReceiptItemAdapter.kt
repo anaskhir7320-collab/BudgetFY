@@ -60,8 +60,11 @@ class ReceiptItemAdapter(
     private fun showCategoryDialog(context: Context, item: ReceiptItem) {
         val currentIndex = categories.indexOfFirst { it == item.category }.coerceAtLeast(0)
         MaterialAlertDialogBuilder(context)
-            .setTitle("Choose a category")
-            .setSingleChoiceItems(categories, currentIndex) { dialog, which ->
+            .setTitle(context.getString(R.string.choose_a_category))
+            .setSingleChoiceItems(
+                categories.map { com.jmti.budgetfy.utils.CategoryNames.display(context, it) }.toTypedArray(),
+                currentIndex
+            ) { dialog, which ->
                 val newCategory = categories[which]
                 val updated = item.copy(
                     category = newCategory,
@@ -70,29 +73,29 @@ class ReceiptItemAdapter(
                 onItemChanged(item, updated)
                 dialog.dismiss()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(context.getString(R.string.cancel), null)
             .show()
     }
 
     private fun showEditItemDialog(context: Context, item: ReceiptItem) {
         val form = com.jmti.budgetfy.utils.DialogForm(context)
-        val nameInput = form.field("Item name", item.name)
-        val qtyInput = form.field("Quantity", item.quantity, com.jmti.budgetfy.utils.DialogForm.NUMBER)
+        val nameInput = form.field(context.getString(R.string.item_name), item.name)
+        val qtyInput = form.field(context.getString(R.string.quantity), item.quantity, com.jmti.budgetfy.utils.DialogForm.NUMBER)
         val priceInput = form.field(
-            "Price", String.format("%.2f", item.price),
+            context.getString(R.string.price), String.format("%.2f", item.price),
             com.jmti.budgetfy.utils.DialogForm.DECIMAL, prefix = "RM "
         )
         val layout = form.view
 
         val builder = MaterialAlertDialogBuilder(context)
-            .setTitle("Edit item")
+            .setTitle(context.getString(R.string.edit_item))
             .setView(layout)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(context.getString(R.string.save)) { _, _ ->
                 val newName = nameInput.text.toString().trim().ifEmpty { item.name }
                 val newQty = qtyInput.text.toString().trim().ifEmpty { "1" }
                 val newPrice = priceInput.text.toString().toDoubleOrNull() ?: item.price
                 if (newPrice <= 0) {
-                    Toast.makeText(context, "Price must be > 0", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.price_must_be_positive), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 val updated = item.copy(
@@ -103,18 +106,18 @@ class ReceiptItemAdapter(
                 )
                 onItemChanged(item, updated)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(context.getString(R.string.cancel), null)
 
         // ✅ NEW: Add delete button if callback is provided
         if (onItemDeleted != null) {
-            builder.setNeutralButton("Delete") { _, _ ->
+            builder.setNeutralButton(context.getString(R.string.delete)) { _, _ ->
                 MaterialAlertDialogBuilder(context)
-                    .setTitle("Delete item?")
-                    .setMessage("Remove \"${item.name}\" from this receipt?")
-                    .setPositiveButton("Delete") { _, _ ->
+                    .setTitle(context.getString(R.string.delete_item_title))
+                    .setMessage(context.getString(R.string.delete_item_message, item.name))
+                    .setPositiveButton(context.getString(R.string.delete)) { _, _ ->
                         onItemDeleted.invoke(item)
                     }
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(context.getString(R.string.cancel), null)
                     .show()
             }
         }
@@ -145,7 +148,8 @@ class ReceiptItemAdapter(
                 androidx.core.content.ContextCompat.getColor(itemView.context, R.color.accent_soft) to
                         androidx.core.content.ContextCompat.getColor(itemView.context, R.color.accent_text)
             }
-            categoryText.text = if (item.isManuallyCorrected) "✓ ${item.category}" else item.category
+            val shownCategory = com.jmti.budgetfy.utils.CategoryNames.display(itemView.context, item.category)
+            categoryText.text = if (item.isManuallyCorrected) "✓ $shownCategory" else shownCategory
             categoryText.setTextColor(chipText)
             categoryChevron.setColorFilter(chipText)
             categoryBar.background = android.graphics.drawable.GradientDrawable().apply {

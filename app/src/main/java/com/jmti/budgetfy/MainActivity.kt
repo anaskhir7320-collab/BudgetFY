@@ -125,9 +125,9 @@ class MainActivity : AppCompatActivity() {
         emptyTransactionsText = findViewById(R.id.emptyTransactionsText)
 
         greetingTextView.text = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-            in 5..11 -> "Good morning"
-            in 12..17 -> "Good afternoon"
-            else -> "Good evening"
+            in 5..11 -> getString(R.string.good_morning)
+            in 12..17 -> getString(R.string.good_afternoon)
+            else -> getString(R.string.good_evening)
         }
         monthPill.text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
 
@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity() {
             if (overallBudget <= 0) {
                 Toast.makeText(
                     this,
-                    "Please setup the overall budget limit first",
+                    getString(R.string.setup_overall_first),
                     Toast.LENGTH_LONG
                 ).show()
                 return@setOnClickListener
@@ -318,7 +318,7 @@ class MainActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         this@MainActivity,
-                        "Error loading data: ${e.message}",
+                        getString(R.string.error_loading_data, e.message),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -359,9 +359,9 @@ class MainActivity : AppCompatActivity() {
         val percentage = if (totalBudget > 0) ((totalSpent / totalBudget) * 100).toInt() else 0
 
         totalSpentTextView.text = "RM ${String.format("%.2f", totalSpent)}"
-        totalBudgetTextView.text = "of RM ${String.format("%.2f", totalBudget)} budget"
+        totalBudgetTextView.text = getString(R.string.of_budget, String.format("%.2f", totalBudget))
         budgetProgressBar.setProgressCompat(percentage.coerceAtMost(100), true)
-        budgetStatusTextView.text = "$percentage% of budget used"
+        budgetStatusTextView.text = getString(R.string.percent_budget_used, percentage)
 
         // Progress color follows budget health: blue → orange at 80% → red when over.
         val healthColor = ContextCompat.getColor(
@@ -377,8 +377,8 @@ class MainActivity : AppCompatActivity() {
         val remaining = totalBudget - totalSpent
         budgetRemainingTextView.text = when {
             totalBudget <= 0 -> ""
-            remaining >= 0 -> "RM ${String.format("%.2f", remaining)} left"
-            else -> "RM ${String.format("%.2f", -remaining)} over"
+            remaining >= 0 -> getString(R.string.rm_left, String.format("%.2f", remaining))
+            else -> getString(R.string.rm_over, String.format("%.2f", -remaining))
         }
 
         when {
@@ -386,13 +386,13 @@ class MainActivity : AppCompatActivity() {
                 alertCard.visibility = View.VISIBLE
                 alertTextView.setBackgroundResource(R.drawable.bg_alert_danger)
                 alertTextView.setTextColor(ContextCompat.getColor(this, R.color.alert_danger_text))
-                alertTextView.text = "You've gone over your monthly budget by RM ${String.format("%.2f", totalSpent - totalBudget)}."
+                alertTextView.text = getString(R.string.alert_over, String.format("%.2f", totalSpent - totalBudget))
             }
             percentage >= 80 -> {
                 alertCard.visibility = View.VISIBLE
                 alertTextView.setBackgroundResource(R.drawable.bg_alert_warning)
                 alertTextView.setTextColor(ContextCompat.getColor(this, R.color.alert_warning_text))
-                alertTextView.text = "You've used $percentage% of your monthly budget."
+                alertTextView.text = getString(R.string.alert_used, percentage)
             }
             else -> alertCard.visibility = View.GONE
         }
@@ -417,7 +417,7 @@ class MainActivity : AppCompatActivity() {
             sorted.map { com.jmti.budgetfy.utils.CategoryStyle.color(this, it.name) to it.spent },
             limit,
             "RM ${String.format("%.2f", spent)}",
-            "of RM $limitText · $pct%"
+            getString(R.string.donut_of, limitText, pct)
         )
     }
 
@@ -446,14 +446,14 @@ class MainActivity : AppCompatActivity() {
         chartStartLabel.text = "1 $monthShort"
         chartEndLabel.text = "$daysInMonth $monthShort"
         chartSummaryTextView.text = when {
-            totalBudget <= 0 -> "This month"
-            totalSpent <= totalBudget * today / daysInMonth -> "On track"
-            else -> "Ahead of pace"
+            totalBudget <= 0 -> getString(R.string.this_month)
+            totalSpent <= totalBudget * today / daysInMonth -> getString(R.string.on_track)
+            else -> getString(R.string.ahead_of_pace)
         }
         chartSummaryTextView.setTextColor(
             ContextCompat.getColor(
                 this,
-                if (chartSummaryTextView.text == "Ahead of pace") R.color.warning_orange else R.color.success_green
+                if (chartSummaryTextView.text == getString(R.string.ahead_of_pace)) R.color.warning_orange else R.color.success_green
             )
         )
         if (totalBudget <= 0) chartSummaryTextView.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))

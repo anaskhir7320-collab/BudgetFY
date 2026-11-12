@@ -28,7 +28,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Upload from Camera"
+            android:text="@string/upload_from_camera"
             android:textSize="15sp"
             android:textColor="@color/text_primary" />
 
@@ -54,7 +54,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Upload from Library"
+            android:text="@string/upload_from_library"
             android:textSize="15sp"
             android:textColor="@color/text_primary" />
 
@@ -80,7 +80,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Remove card image"
+            android:text="@string/remove_card_image"
             android:textSize="15sp"
             android:textColor="@color/text_primary" />
 
@@ -97,7 +97,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="16dp"
-        android:text="Cancel"
+        android:text="@string/cancel"
         android:textSize="14sp"
         android:textColor="@color/text_secondary"
         android:clickable="true"

@@ -102,7 +102,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) openCamera()
-        else Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show()
+        else Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
     }
 
     private val scannerLauncher = registerForActivityResult(
@@ -111,7 +111,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val scan = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
             val pageUri = scan?.pages?.firstOrNull()?.imageUri
-            if (pageUri != null) loadReceiptImage(pageUri, "Receipt scanned! Tap Read.")
+            if (pageUri != null) loadReceiptImage(pageUri, getString(R.string.receipt_scanned_tap_read))
         }
     }
 
@@ -119,13 +119,13 @@ class CaptureReceiptActivity : AppCompatActivity() {
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) photoUri?.let { loadReceiptImage(it, "Photo captured! Tap Read.") }
+        if (success) photoUri?.let { loadReceiptImage(it, getString(R.string.photo_captured_tap_read)) }
     }
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { loadReceiptImage(it, "Image loaded! Tap Read.") }
+        uri?.let { loadReceiptImage(it, getString(R.string.image_loaded_tap_read)) }
     }
 
     private fun loadReceiptImage(uri: Uri, message: String) {
@@ -133,7 +133,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
             // EXIF-aware: phone photos otherwise reach OCR rotated sideways.
             val bitmap = ImageLoader.load(this, uri)
             if (bitmap == null) {
-                Toast.makeText(this, "Could not read that image", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.could_not_read_image), Toast.LENGTH_SHORT).show()
                 return
             }
             capturedBitmap = bitmap
@@ -145,7 +145,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
             savedImagePath = saveImageToInternal(bitmap)
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_with_message, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -167,6 +167,9 @@ class CaptureReceiptActivity : AppCompatActivity() {
         addItemButton = findViewById(R.id.addItemButton)
         progressBar = findViewById(R.id.progressBar)
         storeNameTextView = findViewById(R.id.storeNameTextView)
+        // Default name in the app language until the receipt is read.
+        currentStoreName = getString(R.string.receipt_default)
+        storeNameTextView.text = currentStoreName
         storeEditIcon = findViewById(R.id.storeEditIcon)
 
         itemAdapter = ReceiptItemAdapter(
@@ -206,7 +209,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Removed: ${item.name}",
+                        getString(R.string.removed_item, item.name),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -267,17 +270,17 @@ class CaptureReceiptActivity : AppCompatActivity() {
     private fun showEditStoreDialog() {
         val form = DialogForm(this)
         val input = form.field(
-            "Store name", currentStoreName,
-            helper = "Fix it if it was read wrong. It will be remembered next time."
+            getString(R.string.store_name), currentStoreName,
+            helper = getString(R.string.store_name_helper)
         )
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Store name")
+            .setTitle(getString(R.string.store_name))
             .setView(form.view)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
                 val newName = input.text.toString().trim()
                 if (newName.isEmpty()) {
-                    Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.name_cannot_be_empty), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 val oldName = currentStoreName
@@ -287,7 +290,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                     saveStoreCorrection(oldName, newName)
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -328,7 +331,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
             photoUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
             photoUri?.let { cameraLauncher.launch(it) }
         } catch (e: Exception) {
-            Toast.makeText(this, "Camera error: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.camera_error, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -470,18 +473,19 @@ class CaptureReceiptActivity : AppCompatActivity() {
 
                     val message = when {
                         extractedItems.isEmpty() ->
-                            "No items found. Tap + ADD ITEM."
+                            getString(R.string.no_items_found_add)
                         check.matches == false ->
-                            "Found ${extractedItems.size} items, but they add up to " +
-                                    "RM ${"%.2f".format(check.itemsSum)} while the receipt total is " +
-                                    "RM ${"%.2f".format(check.receiptTotal)}. Please check the items."
+                            getString(
+                                R.string.found_items_mismatch, extractedItems.size,
+                                "%.2f".format(check.itemsSum), "%.2f".format(check.receiptTotal)
+                            )
                         else ->
-                            "Found ${extractedItems.size} items. Tap any to edit or delete."
+                            getString(R.string.found_items_ok, extractedItems.size)
                     }
                     val source = when {
-                        usedAi && analysis.rechecked -> "\n(Double-checked with the accurate model.)"
+                        usedAi && analysis.rechecked -> getString(R.string.double_checked)
                         usedAi -> ""
-                        aiError != null -> "\n(AI unavailable: $aiError. Used on-device reading.)"
+                        aiError != null -> getString(R.string.ai_unavailable, aiError)
                         else -> ""
                     }
                     Toast.makeText(this@CaptureReceiptActivity, message + source,
@@ -492,7 +496,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     processButton.isEnabled = true
                     Toast.makeText(this@CaptureReceiptActivity,
-                        "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        getString(R.string.error_with_message, e.message), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -514,20 +518,20 @@ class CaptureReceiptActivity : AppCompatActivity() {
 
     private fun showAddItemDialog() {
         val form = DialogForm(this)
-        val nameInput = form.field("Item name")
-        val qtyInput = form.field("Quantity", "1", DialogForm.NUMBER)
-        val priceInput = form.field("Price", inputType = DialogForm.DECIMAL, prefix = "RM ")
+        val nameInput = form.field(getString(R.string.item_name))
+        val qtyInput = form.field(getString(R.string.quantity), "1", DialogForm.NUMBER)
+        val priceInput = form.field(getString(R.string.price), inputType = DialogForm.DECIMAL, prefix = "RM ")
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Add item")
+            .setTitle(getString(R.string.add_item_title))
             .setView(form.view)
-            .setPositiveButton("Add") { _, _ ->
+            .setPositiveButton(getString(R.string.add)) { _, _ ->
                 val name = nameInput.text.toString().trim()
                 val qty = qtyInput.text.toString().trim().ifEmpty { "1" }
                 val price = priceInput.text.toString().toDoubleOrNull() ?: 0.0
 
                 if (name.isEmpty() || price <= 0) {
-                    Toast.makeText(this, "Enter valid name and price", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.enter_valid_name_price), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
 
@@ -542,9 +546,9 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 itemAdapter.updateItems(extractedItems.toList())
                 refreshTotals()
                 saveButton.isEnabled = true
-                Toast.makeText(this, "Added: $name", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.added_item, name), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -552,7 +556,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
         val userId = firebaseRepo.getCurrentUser()?.uid ?: return
         val items = extractedItems.filter { it.price > 0 }
         if (items.isEmpty()) {
-            Toast.makeText(this, "No valid items", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_valid_items), Toast.LENGTH_SHORT).show()
             return
         }
         saveButton.isEnabled = false
@@ -577,7 +581,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
                     Toast.makeText(this@CaptureReceiptActivity,
-                        "Saved: RM ${String.format("%.2f", total)}",
+                        getString(R.string.saved_amount, String.format("%.2f", total)),
                         Toast.LENGTH_SHORT).show()
                     finish()
                 }
@@ -586,7 +590,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     saveButton.isEnabled = true
                     Toast.makeText(this@CaptureReceiptActivity,
-                        "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        getString(R.string.error_with_message, e.message), Toast.LENGTH_SHORT).show()
                 }
             }
         }

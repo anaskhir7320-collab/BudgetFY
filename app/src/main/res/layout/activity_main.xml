@@ -39,7 +39,7 @@
                         android:id="@+id/greetingTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Good day"
+                        android:text="@string/good_day"
                         android:textAppearance="@style/TextAppearance.App.Caption" />
 
                     <TextView
@@ -58,7 +58,7 @@
                     style="@style/Widget.App.Pill"
                     android:layout_width="wrap_content"
                     android:drawablePadding="6dp"
-                    android:text="November 2026"
+                    android:text="@string/november_2026"
                     app:drawableStartCompat="@drawable/ic_calendar_small" />
             </LinearLayout>
 
@@ -84,7 +84,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:adjustViewBounds="false"
-                        android:contentDescription="Background"
+                        android:contentDescription="@string/background"
                         android:scaleType="centerCrop"
                         android:visibility="gone" />
 
@@ -107,7 +107,7 @@
                             android:id="@+id/summaryTitleTextView"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Total Spent This Month"
+                            android:text="@string/total_spent_this_month"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -125,7 +125,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="of RM 0.00 budget"
+                            android:text="@string/of_rm_0_00_budget"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -152,7 +152,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="0% of budget used"
+                                android:text="@string/s_0_of_budget_used"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="12sp" />
 
@@ -188,7 +188,7 @@
                     android:gravity="center_vertical"
                     android:paddingHorizontal="14dp"
                     android:paddingVertical="12dp"
-                    android:text="Alert message"
+                    android:text="@string/alert_message"
                     android:textColor="@color/alert_warning_text"
                     android:textSize="13sp"
                     app:drawableStartCompat="@drawable/ic_warning_outline" />
@@ -212,7 +212,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Receipts"
+                        android:text="@string/receipts"
                         android:textAppearance="@style/TextAppearance.App.StatLabel" />
 
                     <TextView
@@ -234,7 +234,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Daily average"
+                        android:text="@string/daily_average"
                         android:textAppearance="@style/TextAppearance.App.StatLabel" />
 
                     <TextView
@@ -256,7 +256,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Left per day"
+                        android:text="@string/left_per_day"
                         android:textAppearance="@style/TextAppearance.App.StatLabel" />
 
                     <TextView
@@ -300,7 +300,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Spending trend"
+                            android:text="@string/spending_trend"
                             android:textAppearance="@style/TextAppearance.App.Title" />
 
                         <TextView
@@ -329,7 +329,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="1 Nov"
+                            android:text="@string/s_1_nov"
                             android:textColor="@color/text_tertiary"
                             android:textSize="11sp" />
 
@@ -337,7 +337,7 @@
                             android:id="@+id/chartEndLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="30 Nov"
+                            android:text="@string/s_30_nov"
                             android:textColor="@color/text_tertiary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -355,7 +355,7 @@
                             style="@style/Widget.App.Pill"
                             android:layout_width="wrap_content"
                             android:background="@drawable/bg_pill_selected"
-                            android:text="Running total"
+                            android:text="@string/running_total"
                             android:textColor="@android:color/white" />
 
                         <TextView
@@ -364,7 +364,7 @@
                             android:layout_width="wrap_content"
                             android:layout_marginStart="6dp"
                             android:background="@drawable/bg_pill_plain"
-                            android:text="Per day"
+                            android:text="@string/per_day"
                             android:textColor="@color/accent_text" />
                     </LinearLayout>
                 </LinearLayout>
@@ -404,14 +404,14 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Budget by category"
+                            android:text="@string/budget_by_category"
                             android:textAppearance="@style/TextAppearance.App.Title" />
 
                         <ImageView
                             android:id="@+id/collapseArrow"
                             android:layout_width="22dp"
                             android:layout_height="22dp"
-                            android:contentDescription="Toggle categories"
+                            android:contentDescription="@string/toggle_categories"
                             android:rotation="0"
                             android:src="@drawable/ic_chevron_down" />
                     </LinearLayout>
@@ -454,7 +454,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Recent transactions"
+                    android:text="@string/recent_transactions"
                     android:textAppearance="@style/TextAppearance.App.Title" />
 
                 <TextView
@@ -464,7 +464,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:gravity="center"
                     android:paddingHorizontal="4dp"
-                    android:text="See all"
+                    android:text="@string/see_all"
                     android:textColor="@color/accent_text"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -489,7 +489,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:paddingVertical="28dp"
-                        android:text="No receipts yet this month.\nTap Scan to add your first one."
+                        android:text="@string/no_receipts_yet_this_month_ntap_scan_to"
                         android:textColor="@color/text_tertiary"
                         android:textSize="13sp"
                         android:visibility="gone" />
@@ -507,10 +507,10 @@
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="84dp"
-        android:contentDescription="Scan receipt"
+        android:contentDescription="@string/scan_receipt"
         android:fontFamily="sans-serif-medium"
         android:letterSpacing="0"
-        android:text="Scan receipt"
+        android:text="@string/scan_receipt"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
         app:backgroundTint="@color/brand_blue"

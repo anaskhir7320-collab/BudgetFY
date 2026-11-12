@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bahasa Melayu (Malaysia). Same keys as values/strings.xml. -->
+<resources>
+    <string name="app_name">BudgetFY</string>
+    <string name="budget">Bajet</string>
+    <string name="monthly_budget">Bajet bulanan</string>
+    <string name="set_how_much_you_plan_to_spend_each_mont">Tetapkan berapa banyak anda rancang untuk berbelanja setiap bulan</string>
+    <string name="overall_budget">Bajet keseluruhan</string>
+    <string name="your_total_spending_limit_for_the_month">Had perbelanjaan keseluruhan anda untuk bulan ini</string>
+    <string name="monthly_limit">Had bulanan</string>
+    <string name="save_overall_budget">Simpan bajet keseluruhan</string>
+    <string name="category_budget">Bajet kategori</string>
+    <string name="set_a_limit_for_one_category">Tetapkan had untuk satu kategori</string>
+    <string name="category">Kategori</string>
+    <string name="category_limit">Had kategori</string>
+    <string name="save_category_budget">Simpan bajet kategori</string>
+    <string name="your_category_budgets">Bajet kategori anda</string>
+    <string name="spending_this_month_against_each_limit">Perbelanjaan bulan ini berbanding setiap had</string>
+    <string name="no_category_budgets_yet_nadd_one_above_t">Belum ada bajet kategori.\nTambah satu di atas untuk menjejakinya di sini.</string>
+    <string name="capture_receipt">Imbas Resit</string>
+    <string name="scan">Imbas</string>
+    <string name="gallery">Galeri</string>
+    <string name="read">Baca</string>
+    <string name="store">Kedai</string>
+    <string name="edit">Sunting</string>
+    <string name="items">Item</string>
+    <string name="add_item">+ Tambah item</string>
+    <string name="save_receipt">Simpan resit</string>
+    <string name="cancel">Batal</string>
+    <string name="edit_profile">Sunting profil</string>
+    <string name="save">Simpan</string>
+    <string name="edit_profile_picture">Sunting gambar profil</string>
+    <string name="change_photo">Tukar gambar</string>
+    <string name="profile">Profil</string>
+    <string name="display_name">Nama paparan</string>
+    <string name="your_name">Nama anda</string>
+    <string name="spending_card">Kad perbelanjaan</string>
+    <string name="how_the_total_spent_card_looks_on_your_h">Rupa kad Jumlah Perbelanjaan di skrin utama anda</string>
+    <string name="standard">Biasa</string>
+    <string name="expanded">Besar</string>
+    <string name="card_preview">Pratonton kad</string>
+    <string name="total_spent_this_month">Jumlah Perbelanjaan Bulan Ini</string>
+    <string name="of_rm_0_00_budget">daripada bajet RM 0.00</string>
+    <string name="preview">Pratonton</string>
+    <string name="upload_your_own">Muat naik sendiri</string>
+    <string name="remove">Buang</string>
+    <string name="ready_made_backgrounds">Latar belakang sedia ada</string>
+    <string name="tap_one_to_use_it">Tekan satu untuk menggunakannya</string>
+    <string name="background_1">Latar belakang 1</string>
+    <string name="selected">Dipilih</string>
+    <string name="background_2">Latar belakang 2</string>
+    <string name="background_3">Latar belakang 3</string>
+    <string name="background_4">Latar belakang 4</string>
+    <string name="history">Sejarah</string>
+    <string name="previous_year">Tahun sebelumnya</string>
+    <string name="next_year">Tahun seterusnya</string>
+    <string name="spent_in_2026">Dibelanjakan pada 2026</string>
+    <string name="receipts">Resit</string>
+    <string name="active_days">Hari aktif</string>
+    <string name="monthly_avg">Purata bulanan</string>
+    <string name="calendar">Kalendar</string>
+    <string name="tap_a_month_or_a_highlighted_day_to_see">Tekan bulan atau hari yang ditanda untuk melihat resitnya</string>
+    <string name="welcome_back">Selamat kembali</string>
+    <string name="log_in_to_keep_track_of_your_spending">Log masuk untuk menjejak perbelanjaan anda</string>
+    <string name="email_address">Alamat E-mel</string>
+    <string name="password">Kata laluan</string>
+    <string name="log_in">Log masuk</string>
+    <string name="don_t_have_an_account_register">Tiada akaun? Daftar</string>
+    <string name="good_day">Selamat sejahtera</string>
+    <string name="november_2026">November 2026</string>
+    <string name="background">Latar belakang</string>
+    <string name="s_0_of_budget_used" formatted="false">0% bajet digunakan</string>
+    <string name="alert_message">Mesej amaran</string>
+    <string name="daily_average">Purata harian</string>
+    <string name="left_per_day">Baki sehari</string>
+    <string name="spending_trend">Trend perbelanjaan</string>
+    <string name="s_1_nov">1 Nov</string>
+    <string name="s_30_nov">30 Nov</string>
+    <string name="running_total">Jumlah terkumpul</string>
+    <string name="per_day">Sehari</string>
+    <string name="budget_by_category">Bajet mengikut kategori</string>
+    <string name="toggle_categories">Tunjuk atau sembunyi kategori</string>
+    <string name="recent_transactions">Transaksi terkini</string>
+    <string name="see_all">Lihat semua</string>
+    <string name="no_receipts_yet_this_month_ntap_scan_to">Belum ada resit bulan ini.\nTekan Imbas untuk menambah resit pertama anda.</string>
+    <string name="scan_receipt">Imbas resit</string>
+    <string name="budget_settings">Tetapan bajet</string>
+    <string name="toggle_budget_settings">Tunjuk atau sembunyi tetapan bajet</string>
+    <string name="reset_overall_budget_limit">Set Semula Had Bajet Keseluruhan</string>
+    <string name="reset_the_overall_budget_to_rm_0_00">Tetapkan semula bajet keseluruhan kepada RM 0.00</string>
+    <string name="full_reset">Set Semula Sepenuhnya</string>
+    <string name="delete_all_receipts_budgets_for_this_mon">Padam semua resit + bajet untuk bulan ini</string>
+    <string name="display_settings">Tetapan Paparan</string>
+    <string name="language">Bahasa</string>
+    <string name="english_uk">🇬🇧  English (UK)</string>
+    <string name="app_theme_style">Gaya Tema Aplikasi</string>
+    <string name="day">Siang</string>
+    <string name="night">Malam</string>
+    <string name="sources">Sumber</string>
+    <string name="rate">Nilai</string>
+    <string name="give_budgetfy_a_rating_on_the_play_store">Beri penilaian BudgetFY di Play Store</string>
+    <string name="contact_us">Hubungi Kami</string>
+    <string name="send_feedback_or_report_an_issue">Hantar maklum balas atau laporkan masalah</string>
+    <string name="terms_and_conditions">Terma dan Syarat</string>
+    <string name="read_through_our_terms_and_conditions">Baca Terma dan Syarat kami</string>
+    <string name="privacy_policy">Dasar Privasi</string>
+    <string name="learn_how_budgetfy_uses_your_data">Ketahui cara BudgetFY menggunakan data anda</string>
+    <string name="logout">Log keluar</string>
+    <string name="testing_app_check_token">Ujian: Token App Check</string>
+    <string name="send_this_to_the_app_owner_to_enable_rec">Hantar ini kepada pemilik aplikasi untuk membolehkan bacaan resit</string>
+    <string name="budgetfy_is_still_in_production_any_erro">BudgetFY masih dalam pembangunan. Sebarang ralat yang berlaku adalah tanggungjawab kami. Jangan segan untuk meninggalkan ulasan supaya kami dapat terus meningkatkan kualiti aplikasi kami.</string>
+    <string name="receipt_photo">Gambar resit</string>
+    <string name="receipt_image">Imej resit</string>
+    <string name="tap_to_expand">Tekan untuk besarkan</string>
+    <string name="items_purchased">Item yang dibeli</string>
+    <string name="tap_a_category_to_change_it">Tekan kategori untuk menukarnya</string>
+    <string name="create_your_account">Cipta akaun anda</string>
+    <string name="start_tracking_your_expenses_today">Mula menjejak perbelanjaan anda hari ini</string>
+    <string name="full_name">Nama Penuh</string>
+    <string name="password_min_6_characters">Kata laluan (min 6 aksara)</string>
+    <string name="confirm_password">Sahkan Kata Laluan</string>
+    <string name="create_account">Cipta akaun</string>
+    <string name="already_have_an_account_log_in">Sudah ada akaun? Log masuk</string>
+    <string name="transactions">Transaksi</string>
+    <string name="september_2026">September 2026</string>
+    <string name="s_0_receipts_scanned">0 resit diimbas</string>
+    <string name="upload_from_camera">Muat naik dari Kamera</string>
+    <string name="upload_from_library">Muat naik dari Galeri</string>
+    <string name="remove_card_image">Buang imej kad</string>
+    <string name="remove_profile_picture">Buang gambar profil</string>
+    <string name="jan">Jan</string>
+    <string name="s_0_used" formatted="false">0% digunakan</string>
+    <string name="s_0_items">0 item</string>
+    <string name="item_name">Nama item</string>
+    <string name="other">Lain-lain</string>
+    <string name="change_category">Tukar kategori</string>
+    <string name="edit_item">Sunting item</string>
+    <string name="items_subtotal">Subjumlah item</string>
+    <string name="rounding_and_adjustments">Pembundaran &amp; pelarasan</string>
+    <string name="total_paid">Jumlah dibayar</string>
+    <string name="home">Utama</string>
+    <string name="rename">Namakan semula</string>
+    <string name="delete">Padam</string>
+    <string name="coming_soon">Akan datang</string>
+    <string name="token_not_ready">Token belum sedia. Imbas satu resit dahulu, kemudian cuba lagi.</string>
+    <string name="app_check_token">Token App Check</string>
+    <string name="token_send_message">Hantar kod ini kepada pemilik aplikasi. Rahsiakan.\n\n%1$s</string>
+    <string name="copy">Salin</string>
+    <string name="token_copied">Token disalin</string>
+    <string name="share">Kongsi</string>
+    <string name="token_share_text">Token App Check BudgetFY: %1$s</string>
+    <string name="send_token">Hantar token</string>
+    <string name="close">Tutup</string>
+    <string name="no_email">Tiada e-mel</string>
+    <string name="user">Pengguna</string>
+    <string name="reset_overall_title">Set semula bajet keseluruhan?</string>
+    <string name="reset_overall_message">Tindakan ini akan:\n\n• Menetapkan bajet keseluruhan kepada RM 0.00\n• Memadam semua bajet kategori bulan ini\n• Mengekalkan resit\n\nAnda perlu menetapkan bajet semula.\n\nTeruskan?</string>
+    <string name="reset">Set semula</string>
+    <string name="overall_reset_done">✅ Bajet keseluruhan ditetapkan semula kepada RM 0.00</string>
+    <string name="failed">❌ Gagal</string>
+    <string name="full_reset_title">Set semula sepenuhnya?</string>
+    <string name="full_reset_message">Tindakan ini akan MEMADAM:\n\n• Semua resit bulan ini\n• Semua bajet kategori bulan ini\n• Bajet keseluruhan ditetapkan semula kepada RM 0.00\n\n⚠️ Tindakan ini TIDAK BOLEH dibatalkan.</string>
+    <string name="delete_all">Padam Semua</string>
+    <string name="full_reset_done">✅ Set semula sepenuhnya selesai</string>
+    <string name="logout_title">Log keluar?</string>
+    <string name="logout_message">Adakah anda pasti mahu log keluar?</string>
+    <string name="logged_out">Telah log keluar</string>
+    <string name="camera_permission_required">Kebenaran kamera diperlukan</string>
+    <string name="receipt_scanned_tap_read">Resit diimbas! Tekan Baca.</string>
+    <string name="photo_captured_tap_read">Gambar diambil! Tekan Baca.</string>
+    <string name="image_loaded_tap_read">Imej dimuatkan! Tekan Baca.</string>
+    <string name="could_not_read_image">Imej itu tidak dapat dibaca</string>
+    <string name="error_with_message">Ralat: %1$s</string>
+    <string name="removed_item">Dibuang: %1$s</string>
+    <string name="store_name">Nama kedai</string>
+    <string name="store_name_helper">Betulkan jika salah dibaca. Ia akan diingati untuk kali seterusnya.</string>
+    <string name="name_cannot_be_empty">Nama tidak boleh kosong</string>
+    <string name="camera_error">Ralat kamera: %1$s</string>
+    <string name="no_items_found_add">Tiada item dijumpai. Tekan + Tambah item.</string>
+    <string name="found_items_mismatch">%1$d item dijumpai, tetapi jumlahnya RM %2$s sedangkan jumlah resit ialah RM %3$s. Sila semak item.</string>
+    <string name="found_items_ok">%1$d item dijumpai. Tekan mana-mana untuk sunting atau padam.</string>
+    <string name="double_checked">\n(Disemak semula dengan model yang lebih tepat.)</string>
+    <string name="ai_unavailable">\n(AI tidak tersedia: %1$s. Bacaan dalam peranti digunakan.)</string>
+    <string name="quantity">Kuantiti</string>
+    <string name="price">Harga</string>
+    <string name="add_item_title">Tambah item</string>
+    <string name="add">Tambah</string>
+    <string name="enter_valid_name_price">Masukkan nama dan harga yang sah</string>
+    <string name="added_item">Ditambah: %1$s</string>
+    <string name="no_valid_items">Tiada item yang sah</string>
+    <string name="saved_amount">Disimpan: RM %1$s</string>
+    <string name="receipt_not_found">Resit tidak dijumpai</string>
+    <string name="tap_to_collapse">Tekan untuk kecilkan</string>
+    <string name="category_updated_to">Kategori ditukar kepada %1$s</string>
+    <string name="one_item">1 item</string>
+    <string name="n_items">%1$d item</string>
+    <string name="loading_photo">Memuatkan gambar…</string>
+    <string name="receipt_default">Resit</string>
+    <string name="rename_receipt">Namakan semula resit</string>
+    <string name="renamed_to">Dinamakan semula kepada \"%1$s\"</string>
+    <string name="delete_receipt_title">Padam resit?</string>
+    <string name="delete_receipt_message">Resit ini akan dibuang dan kesannya pada bajet akan dibatalkan. Tidak boleh dibatalkan.</string>
+    <string name="receipt_deleted">Resit dipadam</string>
+    <string name="choose_a_category">Pilih kategori</string>
+    <string name="price_must_be_positive">Harga mesti lebih daripada 0</string>
+    <string name="delete_item_title">Padam item?</string>
+    <string name="delete_item_message">Buang \"%1$s\" daripada resit ini?</string>
+    <string name="discard_changes_title">Buang perubahan?</string>
+    <string name="discard_changes_message">Suntingan anda tidak akan disimpan.</string>
+    <string name="discard">Buang</string>
+    <string name="keep_editing">Terus sunting</string>
+    <string name="camera_option_coming_soon">Pilihan kamera akan datang</string>
+    <string name="profile_updated">Profil dikemas kini</string>
+    <string name="good_morning">Selamat pagi</string>
+    <string name="good_afternoon">Selamat petang</string>
+    <string name="good_evening">Selamat malam</string>
+    <string name="setup_overall_first">Sila tetapkan had bajet keseluruhan dahulu</string>
+    <string name="error_loading_data">Ralat memuatkan data: %1$s</string>
+    <string name="of_budget">daripada bajet RM %1$s</string>
+    <string name="percent_budget_used">%1$d%% bajet digunakan</string>
+    <string name="rm_left">Baki RM %1$s</string>
+    <string name="rm_over">Lebih RM %1$s</string>
+    <string name="alert_over">Anda telah melebihi bajet bulanan sebanyak RM %1$s.</string>
+    <string name="alert_used">Anda telah menggunakan %1$d%% daripada bajet bulanan anda.</string>
+    <string name="donut_of">daripada RM %1$s · %2$d%%</string>
+    <string name="this_month">Bulan ini</string>
+    <string name="on_track">Mengikut sasaran</string>
+    <string name="ahead_of_pace">Melebihi kadar</string>
+    <string name="max_per_category">Maksimum setiap kategori: RM %1$s</string>
+    <string name="set_overall_first">Tetapkan bajet keseluruhan dahulu</string>
+    <string name="enter_an_amount">Masukkan jumlah</string>
+    <string name="enter_valid_amount">Masukkan jumlah yang sah</string>
+    <string name="overall_budget_set">✅ Bajet keseluruhan ditetapkan: RM %1$s</string>
+    <string name="failed_to_save">Gagal menyimpan</string>
+    <string name="fill_all_fields">Sila isi semua ruangan</string>
+    <string name="enter_valid_budget">Sila masukkan jumlah bajet yang sah</string>
+    <string name="category_limit_exceeds">Had kategori (RM %1$s) tidak boleh melebihi bajet keseluruhan (RM %2$s)</string>
+    <string name="saved_category_budget">Disimpan: %1$s · RM %2$s</string>
+    <string name="passwords_do_not_match">Kata laluan tidak sepadan</string>
+    <string name="password_min_6">Kata laluan mesti sekurang-kurangnya 6 aksara</string>
+    <string name="registration_successful">Pendaftaran berjaya!</string>
+    <string name="registration_failed">Pendaftaran gagal. Sila cuba lagi.</string>
+    <string name="login_successful">Log masuk berjaya!</string>
+    <string name="login_failed">Log masuk gagal. Semak e-mel dan kata laluan anda.</string>
+    <string name="error_loading_history">Ralat memuatkan sejarah: %1$s</string>
+    <string name="spent_in_year">Dibelanjakan pada %1$s</string>
+    <string name="n_receipts_scanned">%1$d resit diimbas</string>
+    <string name="over_budget_by">Melebihi bajet sebanyak RM %1$s</string>
+    <string name="pct_used_almost">%1$d%% digunakan · hampir mencapai had</string>
+    <string name="pct_used">%1$d%% digunakan</string>
+    <string name="items_subtotal_one">Subjumlah item (1 item)</string>
+    <string name="items_subtotal_n">Subjumlah item (%1$d item)</string>
+    <string name="charge_included">%1$s (termasuk)</string>
+    <string name="no_spending_yet">Belum ada perbelanjaan bulan ini</string>
+    <string name="budget_rm">Bajet RM %1$s</string>
+    <string name="history_title">Sejarah</string>
+    <string name="language_title">Bahasa</string>
+    <string name="language_english">🇬🇧  English (UK)</string>
+    <string name="language_malay">🇲🇾  Bahasa Melayu</string>
+    <string name="cat_food_and_dining">Makanan &amp; Minuman</string>
+    <string name="cat_groceries_name">Barangan Runcit</string>
+    <string name="cat_shopping">Membeli-belah</string>
+    <string name="cat_transportation_name">Pengangkutan</string>
+    <string name="cat_entertainment_name">Hiburan</string>
+    <string name="cat_personal_care_name">Penjagaan Diri</string>
+    <string name="cat_health_name">Kesihatan</string>
+    <string name="cat_education_name">Pendidikan</string>
+    <string name="cat_utilities_name">Utiliti</string>
+    <string name="cat_other_name">Lain-lain</string>
+    <string name="charge_sst">SST</string>
+    <string name="charge_sales_tax">Cukai Jualan</string>
+    <string name="charge_service_tax">Cukai Perkhidmatan</string>
+    <string name="charge_gst">GST</string>
+    <string name="charge_service_charge">Caj Perkhidmatan</string>
+    <string name="charge_tourism_tax">Cukai Pelancongan</string>
+    <string name="charge_other">Lain-lain</string>
+    <string name="charge_tax">Cukai</string>
+
+    <string-array name="month_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mac</item>
+        <item>Apr</item>
+        <item>Mei</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Ogo</item>
+        <item>Sep</item>
+        <item>Okt</item>
+        <item>Nov</item>
+        <item>Dis</item>
+    </string-array>
+    <string-array name="month_full">
+        <item>Januari</item>
+        <item>Februari</item>
+        <item>Mac</item>
+        <item>April</item>
+        <item>Mei</item>
+        <item>Jun</item>
+        <item>Julai</item>
+        <item>Ogos</item>
+        <item>September</item>
+        <item>Oktober</item>
+        <item>November</item>
+        <item>Disember</item>
+    </string-array>
+</resources>

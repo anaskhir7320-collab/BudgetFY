@@ -129,7 +129,7 @@ class EditProfileActivity : AppCompatActivity() {
     private fun loadCurrentState() {
         val savedName = prefs.getString("display_name", null)
         val firebaseName = firebaseRepo.getCurrentUser()?.displayName
-        currentDisplayName = savedName ?: firebaseName ?: "Your name"
+        currentDisplayName = savedName ?: firebaseName ?: getString(R.string.your_name)
         displayNameValueText.text = currentDisplayName
 
         currentAvatarUri = prefs.getString("profile_avatar_uri", null)
@@ -152,10 +152,10 @@ class EditProfileActivity : AppCompatActivity() {
         cancelButton.setOnClickListener {
             if (hasChanges) {
                 MaterialAlertDialogBuilder(this)
-                    .setTitle("Discard changes?")
-                    .setMessage("Your edits will not be saved.")
-                    .setPositiveButton("Discard") { _, _ -> finish() }
-                    .setNegativeButton("Keep editing", null)
+                    .setTitle(getString(R.string.discard_changes_title))
+                    .setMessage(getString(R.string.discard_changes_message))
+                    .setPositiveButton(getString(R.string.discard)) { _, _ -> finish() }
+                    .setNegativeButton(getString(R.string.keep_editing), null)
                     .show()
             } else {
                 finish()
@@ -269,7 +269,7 @@ class EditProfileActivity : AppCompatActivity() {
 
         view.findViewById<View>(R.id.optionCamera).setOnClickListener {
             dialog.dismiss()
-            Toast.makeText(this, "Camera option coming soon", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.camera_option_coming_soon), Toast.LENGTH_SHORT).show()
         }
         view.findViewById<View>(R.id.optionLibrary).setOnClickListener {
             dialog.dismiss()
@@ -292,22 +292,22 @@ class EditProfileActivity : AppCompatActivity() {
     // ═══════════════════════════════════════════════════════════
     private fun showEditNameDialog() {
         val form = DialogForm(this)
-        val input = form.field("Your name", currentDisplayName)
+        val input = form.field(getString(R.string.your_name), currentDisplayName)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Display name")
+            .setTitle(getString(R.string.display_name))
             .setView(form.view)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
                 val newName = input.text.toString().trim()
                 if (newName.isEmpty()) {
-                    Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.name_cannot_be_empty), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 currentDisplayName = newName
                 displayNameValueText.text = newName
                 markChanged()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -344,7 +344,7 @@ class EditProfileActivity : AppCompatActivity() {
             }
             withContext(Dispatchers.Main) {
                 if (isFinishing || isDestroyed) return@withContext
-                Toast.makeText(this@EditProfileActivity, "Profile updated", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@EditProfileActivity, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show()
                 finish()
             }
         }

@@ -40,7 +40,7 @@ class CategoryBudgetAdapter : RecyclerView.Adapter<CategoryBudgetAdapter.Categor
         private val statusTextView: TextView = itemView.findViewById(R.id.categoryStatusTextView)
 
         fun bind(category: BudgetCategory) {
-            nameTextView.text = category.name
+            nameTextView.text = com.jmti.budgetfy.utils.CategoryNames.display(itemView.context, category.name)
             amountTextView.text = "RM ${String.format("%.2f", category.spent)} / RM ${String.format("%.2f", category.limit)}"
 
             // Calculate percentage
@@ -64,9 +64,9 @@ class CategoryBudgetAdapter : RecyclerView.Adapter<CategoryBudgetAdapter.Categor
 
             // Status text
             statusTextView.text = when {
-                percentage >= 100 -> "Over budget by RM ${String.format("%.2f", category.spent - category.limit)}"
-                percentage >= 80 -> "$percentage% used · almost at limit"
-                else -> "$percentage% used"
+                percentage >= 100 -> itemView.context.getString(R.string.over_budget_by, String.format("%.2f", category.spent - category.limit))
+                percentage >= 80 -> itemView.context.getString(R.string.pct_used_almost, percentage)
+                else -> itemView.context.getString(R.string.pct_used, percentage)
             }
 
             statusTextView.setTextColor(color)

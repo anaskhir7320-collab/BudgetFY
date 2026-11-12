@@ -53,17 +53,17 @@ class RegisterActivity : AppCompatActivity() {
         val confirmPassword = confirmPasswordEditText.text.toString().trim()
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.fill_all_fields), Toast.LENGTH_SHORT).show()
             return
         }
 
         if (password != confirmPassword) {
-            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.passwords_do_not_match), Toast.LENGTH_SHORT).show()
             return
         }
 
         if (password.length < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.password_min_6), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -78,10 +78,10 @@ class RegisterActivity : AppCompatActivity() {
                 progressBar.visibility = android.view.View.GONE
 
                 if (user != null) {
-                    Toast.makeText(this@RegisterActivity, "Registration Successful!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RegisterActivity, getString(R.string.registration_successful), Toast.LENGTH_SHORT).show()
                     navigateToMain()
                 } else {
-                    Toast.makeText(this@RegisterActivity, "Registration Failed. Please try again.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RegisterActivity, getString(R.string.registration_failed), Toast.LENGTH_SHORT).show()
                 }
             }
         }

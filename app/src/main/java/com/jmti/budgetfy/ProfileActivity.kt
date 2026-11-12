@@ -113,6 +113,12 @@ class ProfileActivity : AppCompatActivity() {
         themeNightButton.setOnClickListener { com.jmti.budgetfy.utils.ThemePrefs.setNight(this, true) }
         showThemeSelection(com.jmti.budgetfy.utils.ThemePrefs.isNight(this))
 
+        // Language: English or Bahasa Melayu; the app redraws in the new language.
+        val malay = isMalay()
+        findViewById<TextView>(R.id.languageValueTextView).text =
+            getString(if (malay) R.string.language_malay else R.string.language_english)
+        findViewById<View>(R.id.languageRow).setOnClickListener { chooseLanguage() }
+
         rateRow.setOnClickListener {
             // TODO: Open Play Store link later
         }
@@ -120,11 +126,31 @@ class ProfileActivity : AppCompatActivity() {
             // TODO: Open email intent later
         }
         termsRow.setOnClickListener {
-            Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.coming_soon), Toast.LENGTH_SHORT).show()
         }
         privacyRow.setOnClickListener {
-            Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.coming_soon), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun isMalay(): Boolean =
+        androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+            .toLanguageTags().startsWith("ms")
+
+    /** English / Bahasa Melayu picker. Android remembers the choice for the app. */
+    private fun chooseLanguage() {
+        val options = arrayOf(getString(R.string.language_english), getString(R.string.language_malay))
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.language_title))
+            .setSingleChoiceItems(options, if (isMalay()) 1 else 0) { dialog, which ->
+                dialog.dismiss()
+                val tag = if (which == 1) "ms" else "en"
+                androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                    androidx.core.os.LocaleListCompat.forLanguageTags(tag)
+                )
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     /** Highlights the selected Day / Night option. */
@@ -174,25 +200,25 @@ class ProfileActivity : AppCompatActivity() {
         card.setOnClickListener {
             val token = AppCheckSetup.debugToken(this)
             if (token == null) {
-                Toast.makeText(this, "Token not ready yet. Scan a receipt once, then try again.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.token_not_ready), Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             MaterialAlertDialogBuilder(this)
-                .setTitle("App Check token")
-                .setMessage("Send this code to the app owner. Keep it private.\n\n$token")
-                .setPositiveButton("Copy") { _, _ ->
+                .setTitle(getString(R.string.app_check_token))
+                .setMessage(getString(R.string.token_send_message, token))
+                .setPositiveButton(getString(R.string.copy)) { _, _ ->
                     val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                     clipboard.setPrimaryClip(android.content.ClipData.newPlainText("App Check token", token))
-                    Toast.makeText(this, "Token copied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.token_copied), Toast.LENGTH_SHORT).show()
                 }
-                .setNeutralButton("Share") { _, _ ->
+                .setNeutralButton(getString(R.string.share)) { _, _ ->
                     startActivity(Intent.createChooser(
                         Intent(Intent.ACTION_SEND).setType("text/plain")
-                            .putExtra(Intent.EXTRA_TEXT, "BudgetFY App Check token: $token"),
-                        "Send token"
+                            .putExtra(Intent.EXTRA_TEXT, getString(R.string.token_share_text, token)),
+                        getString(R.string.send_token)
                     ))
                 }
-                .setNegativeButton("Close", null)
+                .setNegativeButton(getString(R.string.close), null)
                 .show()
         }
     }
@@ -209,29 +235,22 @@ class ProfileActivity : AppCompatActivity() {
     private fun loadUserData() {
         val user = firebaseRepo.getCurrentUser()
         if (user != null) {
-            emailTextView.text = user.email ?: "No email"
+            emailTextView.text = user.email ?: getString(R.string.no_email)
 
             // ✅ Prefer custom display name from prefs, fallback to Firebase display name
             val customName = prefs.getString("display_name", null)
             nameTextView.text = customName
                 ?: user.displayName
-                        ?: "User"
+                        ?: getString(R.string.user)
         }
     }
 
     private fun confirmResetOverall() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Reset overall budget?")
-            .setMessage(
-                "This will:\n\n" +
-                        "• Set overall budget to RM 0.00\n" +
-                        "• Delete all category budgets for this month\n" +
-                        "• Keep receipts\n\n" +
-                        "You'll need to setup budgets again.\n\n" +
-                        "Continue?"
-            )
-            .setPositiveButton("Reset") { _, _ -> performResetOverall() }
-            .setNegativeButton("Cancel", null)
+            .setTitle(getString(R.string.reset_overall_title))
+            .setMessage(getString(R.string.reset_overall_message))
+            .setPositiveButton(getString(R.string.reset)) { _, _ -> performResetOverall() }
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -244,7 +263,7 @@ class ProfileActivity : AppCompatActivity() {
                 showProgress(false)
                 Toast.makeText(
                     this@ProfileActivity,
-                    if (success) "✅ Overall budget reset to RM 0.00" else "❌ Failed",
+                    getString(if (success) R.string.overall_reset_done else R.string.failed),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -253,16 +272,10 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun confirmFullReset() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Full reset?")
-            .setMessage(
-                "This will DELETE:\n\n" +
-                        "• All receipts for this month\n" +
-                        "• All category budgets for this month\n" +
-                        "• Overall budget reset to RM 0.00\n\n" +
-                        "⚠️ This CANNOT be undone."
-            )
-            .setPositiveButton("Delete All") { _, _ -> performFullReset() }
-            .setNegativeButton("Cancel", null)
+            .setTitle(getString(R.string.full_reset_title))
+            .setMessage(getString(R.string.full_reset_message))
+            .setPositiveButton(getString(R.string.delete_all)) { _, _ -> performFullReset() }
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -275,7 +288,7 @@ class ProfileActivity : AppCompatActivity() {
                 showProgress(false)
                 Toast.makeText(
                     this@ProfileActivity,
-                    if (success) "✅ Full reset complete" else "❌ Failed",
+                    getString(if (success) R.string.full_reset_done else R.string.failed),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -284,18 +297,18 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun logoutUser() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Log out?")
-            .setMessage("Are you sure you want to logout?")
-            .setPositiveButton("Logout") { _, _ ->
+            .setTitle(getString(R.string.logout_title))
+            .setMessage(getString(R.string.logout_message))
+            .setPositiveButton(getString(R.string.logout)) { _, _ ->
                 CoroutineScope(Dispatchers.IO).launch {
                     firebaseRepo.logoutUser()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@ProfileActivity, "Logged out", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ProfileActivity, getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
                         navigateToLogin()
                     }
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 

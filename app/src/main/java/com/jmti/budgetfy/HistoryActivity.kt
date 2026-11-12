@@ -87,7 +87,7 @@ class HistoryActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this@HistoryActivity, "Error loading history: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@HistoryActivity, getString(R.string.error_loading_history, e.message), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -111,7 +111,7 @@ class HistoryActivity : AppCompatActivity() {
         // Average over months elapsed so far (this year) or all 12 (past years).
         val monthsElapsed = if (year == currentYear) Calendar.getInstance().get(Calendar.MONTH) + 1 else 12
 
-        yearSpentLabel.text = "Spent in $year"
+        yearSpentLabel.text = getString(R.string.spent_in_year, year.toString())
         yearTotalTextView.text = "RM %.2f".format(total)
         yearReceiptsValue.text = yearReceipts.size.toString()
         yearActiveDaysValue.text = activeDays.toString()

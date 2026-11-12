@@ -40,7 +40,7 @@ class CategoryLegendAdapter : RecyclerView.Adapter<CategoryLegendAdapter.Row>() 
                 shape = GradientDrawable.OVAL
                 setColor(color)
             }
-            name.text = c.name
+            name.text = com.jmti.budgetfy.utils.CategoryNames.display(itemView.context, c.name)
             amount.text = "${String.format("%.2f", c.spent)} / ${formatLimit(c.limit)}"
 
             val pct = if (c.limit > 0) ((c.spent / c.limit) * 100).toInt() else 0

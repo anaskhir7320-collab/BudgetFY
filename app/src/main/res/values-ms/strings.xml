@@ -144,7 +144,7 @@
     <string name="coming_soon">Akan datang</string>
     <string name="token_not_ready">Token belum sedia. Imbas satu resit dahulu, kemudian cuba lagi.</string>
     <string name="app_check_token">Token App Check</string>
-    <string name="token_send_message">Hantar kod ini kepada pemilik aplikasi. Rahsiakan.\n\n%1$s</string>
+    <string name="token_send_message">Hantar kod ini kepada pemilik aplikasi, atau biar mereka imbas kod QR. Rahsiakan.\n\n%1$s</string>
     <string name="copy">Salin</string>
     <string name="token_copied">Token disalin</string>
     <string name="share">Kongsi</string>

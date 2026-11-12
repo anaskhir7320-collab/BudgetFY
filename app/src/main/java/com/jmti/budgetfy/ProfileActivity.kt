@@ -203,9 +203,28 @@ class ProfileActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.token_not_ready), Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
+            // QR of the code so the owner can scan it with their phone camera.
+            val dp = resources.displayMetrics.density
+            val qr = AppCheckSetup.tokenQr(token, (220 * dp).toInt())
+            val qrView = qr?.let { bitmap ->
+                android.widget.FrameLayout(this).apply {
+                    setPadding((24 * dp).toInt(), (8 * dp).toInt(), (24 * dp).toInt(), 0)
+                    addView(android.widget.ImageView(this@ProfileActivity).apply {
+                        setImageBitmap(bitmap)
+                        contentDescription = getString(R.string.app_check_token)
+                        // White frame keeps the QR scannable in Night mode too.
+                        setBackgroundColor(android.graphics.Color.WHITE)
+                        val pad = (8 * dp).toInt()
+                        setPadding(pad, pad, pad, pad)
+                    }, android.widget.FrameLayout.LayoutParams(
+                        (236 * dp).toInt(), (236 * dp).toInt(), android.view.Gravity.CENTER_HORIZONTAL
+                    ))
+                }
+            }
             MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.app_check_token))
                 .setMessage(getString(R.string.token_send_message, token))
+                .apply { if (qrView != null) setView(qrView) }
                 .setPositiveButton(getString(R.string.copy)) { _, _ ->
                     val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                     clipboard.setPrimaryClip(android.content.ClipData.newPlainText("App Check token", token))

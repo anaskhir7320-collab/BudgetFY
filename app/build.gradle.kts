@@ -93,6 +93,8 @@ dependencies {
     // compiled into debug builds only; release uses Play Integrity.
     implementation("com.google.firebase:firebase-appcheck")
     debugImplementation("com.google.firebase:firebase-appcheck-debug")
+    // QR code of the App Check debug token (Profile > Testing), debug builds only
+    debugImplementation("com.google.zxing:core:3.5.3")
     releaseImplementation("com.google.firebase:firebase-appcheck-playintegrity")
 
     // ML Kit OCR

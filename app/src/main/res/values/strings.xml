@@ -146,7 +146,7 @@
     <string name="coming_soon">Coming soon</string>
     <string name="token_not_ready">Token not ready yet. Scan a receipt once, then try again.</string>
     <string name="app_check_token">App Check token</string>
-    <string name="token_send_message">Send this code to the app owner. Keep it private.\n\n%1$s</string>
+    <string name="token_send_message">Send this code to the app owner, or let them scan the QR code. Keep it private.\n\n%1$s</string>
     <string name="copy">Copy</string>
     <string name="token_copied">Token copied</string>
     <string name="share">Share</string>

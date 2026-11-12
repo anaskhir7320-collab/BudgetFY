@@ -13,6 +13,10 @@ object AppCheckSetup {
         )
     }
 
+    /** Release builds have no debug token, so no QR either. */
+    @Suppress("UNUSED_PARAMETER")
+    fun tokenQr(token: String, sizePx: Int): android.graphics.Bitmap? = null
+
     /** Release builds have no debug token. */
     @Suppress("UNUSED_PARAMETER")
     fun debugToken(context: Context): String? = null

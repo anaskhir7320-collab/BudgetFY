@@ -6,15 +6,12 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.view.animation.RotateAnimation
-import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.imageview.ShapeableImageView
 import com.jmti.budgetfy.repositories.FirebaseRepository
 import kotlinx.coroutines.CoroutineScope
@@ -27,28 +24,22 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var profileAvatarImage: ShapeableImageView
     private lateinit var emailTextView: TextView
     private lateinit var nameTextView: TextView
-    private lateinit var editProfileCard: MaterialCardView
-    private lateinit var budgetSettingsHeaderRow: View
-    private lateinit var budgetCollapseArrow: ImageView
-    private lateinit var resetBudgetCard: MaterialCardView
-    private lateinit var fullResetCard: MaterialCardView
-    private lateinit var themeDayButton: View
-    private lateinit var themeNightButton: View
-    private lateinit var dayIndicator: View
-    private lateinit var nightIndicator: View
+    private lateinit var editProfileButton: View
+    private lateinit var resetBudgetRow: View
+    private lateinit var fullResetRow: View
+    private lateinit var themeDayButton: TextView
+    private lateinit var themeNightButton: TextView
     private lateinit var rateRow: View
     private lateinit var contactRow: View
     private lateinit var termsRow: View
     private lateinit var privacyRow: View
-    private lateinit var logoutCard: MaterialCardView
+    private lateinit var logoutRow: View
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: ProgressBar
 
     private val firebaseRepo = FirebaseRepository()
 
     private lateinit var prefs: SharedPreferences
-
-    private var isBudgetSettingsExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,20 +57,16 @@ class ProfileActivity : AppCompatActivity() {
         profileAvatarImage = findViewById(R.id.profileAvatarImage)
         emailTextView = findViewById(R.id.profileEmailTextView)
         nameTextView = findViewById(R.id.profileNameTextView)
-        editProfileCard = findViewById(R.id.editProfileCard)
-        budgetSettingsHeaderRow = findViewById(R.id.budgetSettingsHeaderRow)
-        budgetCollapseArrow = findViewById(R.id.budgetCollapseArrow)
-        resetBudgetCard = findViewById(R.id.resetBudgetCard)
-        fullResetCard = findViewById(R.id.fullResetCard)
+        editProfileButton = findViewById(R.id.editProfileButton)
+        resetBudgetRow = findViewById(R.id.resetBudgetRow)
+        fullResetRow = findViewById(R.id.fullResetRow)
         themeDayButton = findViewById(R.id.themeDayButton)
         themeNightButton = findViewById(R.id.themeNightButton)
-        dayIndicator = findViewById(R.id.dayIndicator)
-        nightIndicator = findViewById(R.id.nightIndicator)
         rateRow = findViewById(R.id.rateRow)
         contactRow = findViewById(R.id.contactRow)
         termsRow = findViewById(R.id.termsRow)
         privacyRow = findViewById(R.id.privacyRow)
-        logoutCard = findViewById(R.id.logoutCard)
+        logoutRow = findViewById(R.id.logoutRow)
         toolbar = findViewById(R.id.toolbar)
 
         progressBar = ProgressBar(this).apply { visibility = View.GONE }
@@ -88,24 +75,18 @@ class ProfileActivity : AppCompatActivity() {
 
         toolbar.setNavigationOnClickListener { finish() }
 
-        applyBudgetSettingsState()
+        findViewById<TextView>(R.id.versionTextView).text =
+            getString(R.string.version_footer, BuildConfig.VERSION_NAME)
     }
 
     private fun setupListeners() {
-        // ✅ NEW: Open Edit Profile screen
-        editProfileCard.setOnClickListener {
-            val intent = Intent(this, EditProfileActivity::class.java)
-            startActivity(intent)
+        editProfileButton.setOnClickListener {
+            startActivity(Intent(this, EditProfileActivity::class.java))
         }
 
-        budgetSettingsHeaderRow.setOnClickListener {
-            isBudgetSettingsExpanded = !isBudgetSettingsExpanded
-            applyBudgetSettingsState()
-        }
-
-        resetBudgetCard.setOnClickListener { confirmResetOverall() }
-        fullResetCard.setOnClickListener { confirmFullReset() }
-        logoutCard.setOnClickListener { logoutUser() }
+        resetBudgetRow.setOnClickListener { confirmResetOverall() }
+        fullResetRow.setOnClickListener { confirmFullReset() }
+        logoutRow.setOnClickListener { logoutUser() }
         setupDebugTokenRow()
 
         // Day / Night: saved, and every open screen redraws in the new mode.
@@ -114,16 +95,15 @@ class ProfileActivity : AppCompatActivity() {
         showThemeSelection(com.jmti.budgetfy.utils.ThemePrefs.isNight(this))
 
         // Language: English or Bahasa Melayu; the app redraws in the new language.
-        val malay = isMalay()
         findViewById<TextView>(R.id.languageValueTextView).text =
-            getString(if (malay) R.string.language_malay else R.string.language_english)
+            getString(if (isMalay()) R.string.language_value_malay else R.string.language_value_english)
         findViewById<View>(R.id.languageRow).setOnClickListener { chooseLanguage() }
 
         rateRow.setOnClickListener {
-            // TODO: Open Play Store link later
+            Toast.makeText(this, getString(R.string.coming_soon), Toast.LENGTH_SHORT).show()
         }
         contactRow.setOnClickListener {
-            // TODO: Open email intent later
+            Toast.makeText(this, getString(R.string.coming_soon), Toast.LENGTH_SHORT).show()
         }
         termsRow.setOnClickListener {
             Toast.makeText(this, getString(R.string.coming_soon), Toast.LENGTH_SHORT).show()
@@ -153,40 +133,17 @@ class ProfileActivity : AppCompatActivity() {
             .show()
     }
 
-    /** Highlights the selected Day / Night option. */
+    /** Day | Night switch: the selected side gets the raised "thumb". */
     private fun showThemeSelection(night: Boolean) {
-        val selected = androidx.core.content.ContextCompat.getColor(this, R.color.brand_blue_dark)
-        val normal = androidx.core.content.ContextCompat.getColor(this, R.color.text_primary)
-        themeDayButton.setBackgroundResource(if (night) R.drawable.bg_theme_option else R.drawable.bg_theme_option_selected)
-        themeNightButton.setBackgroundResource(if (night) R.drawable.bg_theme_option_selected else R.drawable.bg_theme_option)
-        dayIndicator.setBackgroundResource(if (night) R.drawable.bg_dot_unselected else R.drawable.bg_dot_selected)
-        nightIndicator.setBackgroundResource(if (night) R.drawable.bg_dot_selected else R.drawable.bg_dot_unselected)
-        findViewById<TextView>(R.id.dayLabel).setTextColor(if (night) normal else selected)
-        findViewById<TextView>(R.id.nightLabel).setTextColor(if (night) selected else normal)
-    }
-
-    private fun applyBudgetSettingsState() {
-        if (isBudgetSettingsExpanded) {
-            resetBudgetCard.visibility = View.VISIBLE
-            fullResetCard.visibility = View.VISIBLE
-            rotateArrow(0f, 180f)
-        } else {
-            resetBudgetCard.visibility = View.GONE
-            fullResetCard.visibility = View.GONE
-            rotateArrow(180f, 0f)
+        val selected = androidx.core.content.ContextCompat.getColor(this, R.color.text_primary)
+        val normal = androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary)
+        listOf(themeDayButton to !night, themeNightButton to night).forEach { (button, on) ->
+            if (on) button.setBackgroundResource(R.drawable.bg_segment_thumb) else button.background = null
+            button.setTextColor(if (on) selected else normal)
+            button.typeface = android.graphics.Typeface.create(
+                if (on) "sans-serif-medium" else "sans-serif", android.graphics.Typeface.NORMAL
+            )
         }
-    }
-
-    private fun rotateArrow(from: Float, to: Float) {
-        val anim = RotateAnimation(
-            from, to,
-            RotateAnimation.RELATIVE_TO_SELF, 0.5f,
-            RotateAnimation.RELATIVE_TO_SELF, 0.5f
-        ).apply {
-            duration = 250
-            fillAfter = true
-        }
-        budgetCollapseArrow.startAnimation(anim)
     }
 
     /**
@@ -197,7 +154,7 @@ class ProfileActivity : AppCompatActivity() {
         val card = findViewById<View>(R.id.debugTokenCard)
         if (AppCheckSetup.debugToken(this) == null && !BuildConfig.DEBUG) return
         card.visibility = View.VISIBLE
-        card.setOnClickListener {
+        findViewById<View>(R.id.debugTokenRow).setOnClickListener {
             val token = AppCheckSetup.debugToken(this)
             if (token == null) {
                 Toast.makeText(this, getString(R.string.token_not_ready), Toast.LENGTH_LONG).show()

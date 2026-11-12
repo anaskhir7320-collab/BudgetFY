@@ -304,4 +304,26 @@
         <item>November</item>
         <item>Disember</item>
     </string-array>
+
+    <!-- Profile page -->
+    <string name="section_budget">Bajet</string>
+    <string name="section_preferences">Keutamaan</string>
+    <string name="section_support">Sokongan</string>
+    <string name="section_account">Akaun</string>
+    <string name="theme">Tema</string>
+    <string name="reset_overall_budget">Set semula bajet keseluruhan</string>
+    <string name="reset_overall_budget_sub">Tetapkan semula had bulanan kepada RM 0.00</string>
+    <string name="full_reset_row">Set semula sepenuhnya</string>
+    <string name="full_reset_sub">Padam resit dan bajet bulan ini</string>
+    <string name="rate_budgetfy">Nilai BudgetFY</string>
+    <string name="contact_us_row">Hubungi kami</string>
+    <string name="terms_row">Terma dan syarat</string>
+    <string name="privacy_row">Dasar privasi</string>
+    <string name="app_check_token_row">Token App Check</string>
+    <string name="app_check_token_sub">Untuk penguji: hantar kepada pemilik aplikasi</string>
+    <string name="log_out_row">Log keluar</string>
+    <string name="version_footer">BudgetFY · Versi %1$s</string>
+    <string name="dev_note">Masih dalam pembangunan. Maklum balas anda membantu kami menambah baik.</string>
+    <string name="language_value_english">English (UK)</string>
+    <string name="language_value_malay">Bahasa Melayu</string>
 </resources>

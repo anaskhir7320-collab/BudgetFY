@@ -98,9 +98,14 @@ class FirebaseRepository {
      *   offline). Used while saving a receipt; screens ask the server so a
      *   change made on another phone shows up.
      */
-    suspend fun getOverallBudget(userId: String, preferCache: Boolean = false): Double {
+    suspend fun getOverallBudget(userId: String, preferCache: Boolean = false, cacheOnly: Boolean = false): Double {
         return try {
             val ref = firestore.collection("users").document(userId)
+            if (cacheOnly) {
+                val doc = ref.get(com.google.firebase.firestore.Source.CACHE).await()
+                val amount = doc.getDouble("overallBudget") ?: 0.0
+                return if (doc.getString("overallBudgetMonth") == getCurrentMonth()) amount else 0.0
+            }
             val cached = if (preferCache) {
                 runCatching { ref.get(com.google.firebase.firestore.Source.CACHE).await() }.getOrNull()
             } else null
@@ -183,12 +188,13 @@ class FirebaseRepository {
         }
     }
 
-    suspend fun getBudgets(userId: String): List<BudgetCategory> {
+    /** [source] CACHE reads the phone's copy instantly (Home shows it before the server answers). */
+    suspend fun getBudgets(userId: String, source: com.google.firebase.firestore.Source = com.google.firebase.firestore.Source.DEFAULT): List<BudgetCategory> {
         val month = getCurrentMonth()
         val snapshot = firestore.collection("budgets")
             .whereEqualTo("userId", userId)
             .whereEqualTo("month", month)
-            .get().await()
+            .get(source).await()
 
         val uniqueByCategory = snapshot.documents
             .mapNotNull { it.toObject(Budget::class.java) }
@@ -345,10 +351,10 @@ class FirebaseRepository {
         }
     }
 
-    suspend fun getReceipts(userId: String): List<Receipt> {
+    suspend fun getReceipts(userId: String, source: com.google.firebase.firestore.Source = com.google.firebase.firestore.Source.DEFAULT): List<Receipt> {
         return try {
             val snapshot = firestore.collection("receipts")
-                .whereEqualTo("userId", userId).get().await()
+                .whereEqualTo("userId", userId).get(source).await()
             snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Receipt::class.java)?.copy(id = doc.id)
             }.sortedByDescending { it.createdAt }
@@ -358,8 +364,8 @@ class FirebaseRepository {
         }
     }
 
-    suspend fun getReceiptsForCurrentMonth(userId: String): List<Receipt> {
-        val allReceipts = getReceipts(userId)
+    suspend fun getReceiptsForCurrentMonth(userId: String, source: com.google.firebase.firestore.Source = com.google.firebase.firestore.Source.DEFAULT): List<Receipt> {
+        val allReceipts = getReceipts(userId, source)
         val formatter = SimpleDateFormat("yyyy-MM", Locale.getDefault())
         val currentMonth = formatter.format(Date())
         return allReceipts.filter {

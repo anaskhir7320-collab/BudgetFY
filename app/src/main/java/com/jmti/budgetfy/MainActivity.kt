@@ -29,6 +29,7 @@ import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.views.SpendingChartView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -89,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         initViews()
         setupListeners()
         loadBackgroundPreference()
-        loadData()
+        // Data loads in onResume, which always runs right after this.
     }
 
     private fun initViews() {
@@ -304,16 +305,20 @@ class MainActivity : AppCompatActivity() {
         cleanupOldPhotosDaily(userId)
         restoreProfileOnce(userId)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        loadJob?.cancel()
+        loadJob = CoroutineScope(Dispatchers.IO).launch {
+            val started = System.currentTimeMillis()
+            // 1) The phone's copy first: Home fills in instantly, even offline.
+            runCatching {
+                val (b, r, c) = fetchHome(userId, com.google.firebase.firestore.Source.CACHE)
+                if (r.isNotEmpty() || b > 0.0) withContext(Dispatchers.Main) { showHome(b, r, c) }
+            }
+            Log.d("HOME", "Phone copy shown in ${System.currentTimeMillis() - started} ms")
+            // 2) Then the server, all three at once, and refresh what's shown.
             try {
-                overallBudget = firebaseRepo.getOverallBudget(userId)
-                receipts = firebaseRepo.getReceiptsForCurrentMonth(userId)
-                budgets = firebaseRepo.getBudgets(userId)
-
-                withContext(Dispatchers.Main) {
-                    expenseAdapter.updateData(receipts)
-                    updateDashboard()
-                }
+                val (b, r, c) = fetchHome(userId, com.google.firebase.firestore.Source.DEFAULT)
+                withContext(Dispatchers.Main) { showHome(b, r, c) }
+                Log.d("HOME", "Server data shown in ${System.currentTimeMillis() - started} ms")
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
@@ -324,6 +329,27 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private var loadJob: kotlinx.coroutines.Job? = null
+
+    /** Overall budget, this month's receipts and category budgets, read in parallel. */
+    private suspend fun fetchHome(userId: String, source: com.google.firebase.firestore.Source) =
+        kotlinx.coroutines.coroutineScope {
+            val cache = source == com.google.firebase.firestore.Source.CACHE
+            val budget = async { firebaseRepo.getOverallBudget(userId, cacheOnly = cache) }
+            val monthReceipts = async { firebaseRepo.getReceiptsForCurrentMonth(userId, source) }
+            val categories = async { firebaseRepo.getBudgets(userId, source) }
+            Triple(budget.await(), monthReceipts.await(), categories.await())
+        }
+
+    private fun showHome(budget: Double, monthReceipts: List<com.jmti.budgetfy.models.Receipt>, categories: List<com.jmti.budgetfy.models.BudgetCategory>) {
+        if (isFinishing || isDestroyed) return
+        overallBudget = budget
+        receipts = monthReceipts
+        budgets = categories
+        expenseAdapter.updateData(receipts)
+        updateDashboard()
     }
 
     /**

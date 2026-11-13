@@ -49,6 +49,14 @@ class CategorizationEngine {
         )
     )
 
+    /** Words that mean a prepared dish or drink, checked before the grocery words. */
+    private val dishWords = listOf(
+        "soup", "(soup)", "fried", "goreng", "bakar", "grilled", "bowl", "set ", " set",
+        "curry", "kari", "nasi", "mee ", "kuey teow", "laksa", "dim sum", "shredded",
+        "burger", "pizza", "sandwich", "wrap", "latte", "americano", "espresso",
+        "frappe", "milk tea", "teh tarik", "kopi", "iced ", "lemonade", "smoothie"
+    )
+
     fun categorizeItem(itemName: String): String {
         return categorizeItem(itemName, emptyList())
     }
@@ -68,6 +76,10 @@ class CategorizationEngine {
                     it.original.length >= 4
         }
         if (fuzzyMatch != null) return fuzzyMatch.correctedCategory
+
+        // A cooked dish is Food & Dining even when it names a grocery
+        // ("Chicken Ball Noodle (Soup)", "Nasi Goreng Ayam").
+        if (dishWords.any { lowerName.contains(it) }) return "Food & Dining"
 
         for ((category, keywords) in categoryKeywords) {
             for (keyword in keywords) {
@@ -100,12 +112,19 @@ class CategorizationEngine {
 
     // ✅ NEW: apply learned store names
     fun applyLearnedStoreName(detectedName: String, learnedKeywords: List<LearnedKeyword>): String {
+        // The default name ("Receipt" / "Resit") says nothing about the shop, so a
+        // rename learned from it must not turn every unnamed receipt into that shop.
+        if (isDefaultStoreName(detectedName)) return detectedName
         val key = "__store__:${detectedName.lowercase()}"
         val match = learnedKeywords.firstOrNull {
             it.original.equals(key, ignoreCase = true) && it.correctedName.isNotEmpty()
         }
         return match?.correctedName ?: detectedName
     }
+
+    /** "Receipt" (English) or "Resit" (Malay): used when no store name was read. */
+    fun isDefaultStoreName(name: String): Boolean =
+        name.trim().lowercase() in setOf("receipt", "resit", "")
 
     fun getCategories(): List<String> {
         return categoryKeywords.keys.sorted()

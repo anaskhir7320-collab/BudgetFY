@@ -24,6 +24,8 @@ class FirebaseRepository {
     companion object {
         /** Receipt photos, one document per receipt, keyed by receipt id. */
         private const val RECEIPT_IMAGES = "receipt_images"
+        /** How long to wait for Firestore before using the phone's copy (offline). */
+        private const val QUICK_MS = 1500L
     }
 
     private val auth = FirebaseAuth.getInstance()
@@ -91,9 +93,18 @@ class FirebaseRepository {
         }
     }
 
-    suspend fun getOverallBudget(userId: String): Double {
+    /**
+     * @param preferCache use the phone's copy if it has one (instant, works
+     *   offline). Used while saving a receipt; screens ask the server so a
+     *   change made on another phone shows up.
+     */
+    suspend fun getOverallBudget(userId: String, preferCache: Boolean = false): Double {
         return try {
-            val doc = firestore.collection("users").document(userId).get().await()
+            val ref = firestore.collection("users").document(userId)
+            val cached = if (preferCache) {
+                runCatching { ref.get(com.google.firebase.firestore.Source.CACHE).await() }.getOrNull()
+            } else null
+            val doc = if (cached != null && cached.exists()) cached else ref.get().await()
             val amount = doc.getDouble("overallBudget") ?: 0.0
             val month = doc.getString("overallBudgetMonth") ?: ""
             val currentMonth = getCurrentMonth()
@@ -193,21 +204,27 @@ class FirebaseRepository {
         }
     }
 
+    /**
+     * Adds [amount] to this month's budget for [category], creating the budget
+     * if there is none. Works offline: the change is kept on the phone and
+     * sent to Firestore when the connection is back.
+     */
     suspend fun updateBudgetSpent(userId: String, category: String, amount: Double) {
         val month = getCurrentMonth()
-        val snapshot = firestore.collection("budgets")
+        val query = firestore.collection("budgets")
             .whereEqualTo("userId", userId)
             .whereEqualTo("category", category)
             .whereEqualTo("month", month)
-            .get().await()
+        val snapshot = quickGet(query)
 
-        if (snapshot.documents.isNotEmpty()) {
-            val doc = snapshot.documents.first()
-            val current = doc.getDouble("spent") ?: 0.0
-            firestore.collection("budgets").document(doc.id)
-                .update("spent", current + amount).await()
+        if (snapshot != null && snapshot.documents.isNotEmpty()) {
+            // Increment (not read-then-write), so receipts saved offline all add up after syncing.
+            awaitBriefly(
+                firestore.collection("budgets").document(snapshot.documents.first().id)
+                    .update("spent", com.google.firebase.firestore.FieldValue.increment(amount))
+            )
         } else {
-            val overall = getOverallBudget(userId)
+            val overall = kotlinx.coroutines.withTimeoutOrNull(QUICK_MS) { getOverallBudget(userId, preferCache = true) } ?: 0.0
             val defaultLimits = categorizationEngine.getDefaultBudgetLimits()
             val desiredLimit = defaultLimits[category] ?: 100.0
             val actualLimit = if (overall > 0) minOf(desiredLimit, overall) else desiredLimit
@@ -216,8 +233,30 @@ class FirebaseRepository {
                 userId = userId, category = category,
                 limit = actualLimit, spent = amount, month = month
             )
-            firestore.collection("budgets").document().set(budget).await()
+            awaitBriefly(firestore.collection("budgets").document().set(budget))
         }
+    }
+
+    /**
+     * A query that doesn't hang offline: the copy Firestore keeps on the
+     * phone first (Home has already loaded it), the server only if the phone
+     * has nothing, and then for at most [QUICK_MS].
+     */
+    private suspend fun quickGet(query: com.google.firebase.firestore.Query): com.google.firebase.firestore.QuerySnapshot? {
+        val cached = runCatching { query.get(com.google.firebase.firestore.Source.CACHE).await() }.getOrNull()
+        if (cached != null && !cached.isEmpty) return cached
+        return kotlinx.coroutines.withTimeoutOrNull(QUICK_MS) { runCatching { query.get().await() }.getOrNull() }
+            ?: cached
+    }
+
+    /**
+     * Firestore saves a write on the phone straight away and only reports
+     * "done" once the server confirms, which offline never happens. So don't
+     * wait: the write is sent in the background (even after the app closes,
+     * on its next start). Failures, e.g. a security rule, are logged.
+     */
+    private fun awaitBriefly(task: com.google.android.gms.tasks.Task<*>) {
+        task.addOnFailureListener { Log.e("FirebaseRepo", "Write failed: ${it.message}") }
     }
 
     // ==================== RECEIPTS ====================
@@ -232,22 +271,26 @@ class FirebaseRepository {
         var toSave = receipt
         if (imageJpeg != null) {
             try {
-                firestore.collection(RECEIPT_IMAGES).document(ref.id).set(
-                    mapOf(
-                        "userId" to userId,
-                        "image" to Blob.fromBytes(imageJpeg),
-                        "createdAt" to System.currentTimeMillis()
+                // Queued on the phone and uploaded in the background (also offline).
+                awaitBriefly(
+                    firestore.collection(RECEIPT_IMAGES).document(ref.id).set(
+                        mapOf(
+                            "userId" to userId,
+                            "image" to Blob.fromBytes(imageJpeg),
+                            "createdAt" to System.currentTimeMillis()
+                        )
                     )
-                ).await()
+                )
                 toSave = receipt.copy(cloudImage = true)
             } catch (e: Exception) {
                 Log.e("FirebaseRepo", "Receipt photo upload failed: ${e.message}")
             }
         }
-        ref.set(toSave).await()
+        awaitBriefly(ref.set(toSave))
+        // One budget update per category, not per item.
         val share = receipt.chargeShare()
-        for (item in receipt.items) {
-            updateBudgetSpent(userId, item.category, item.price * share)
+        receipt.items.groupBy { it.category }.forEach { (category, items) ->
+            updateBudgetSpent(userId, category, items.sumOf { it.price } * share)
         }
     }
 

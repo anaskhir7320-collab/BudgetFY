@@ -223,6 +223,26 @@
             android:orientation="vertical"
             android:paddingHorizontal="16dp">
 
+            <!-- After reading: "Found 2 items. Read in 1.1 s · offline mode" -->
+            <TextView
+                android:id="@+id/readStatusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <!-- Only when the items don't add up to the receipt total -->
+            <TextView
+                android:id="@+id/readWarningText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textColor="@color/pct_warning"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/itemsRecyclerView"
                 android:layout_width="match_parent"

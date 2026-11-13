@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.IntentSenderRequest
@@ -33,6 +34,7 @@ import com.jmti.budgetfy.repositories.FirebaseRepository
 import com.jmti.budgetfy.utils.CategorizationEngine
 import com.jmti.budgetfy.utils.DialogForm
 import com.jmti.budgetfy.utils.GeminiReceiptExtractor
+import com.jmti.budgetfy.utils.OfflineReceiptReader
 import com.jmti.budgetfy.utils.ImageCompress
 import com.jmti.budgetfy.utils.ImageLoader
 import com.jmti.budgetfy.utils.OCRHelper
@@ -129,26 +131,39 @@ class CaptureReceiptActivity : AppCompatActivity() {
     }
 
     private fun loadReceiptImage(uri: Uri, message: String) {
-        try {
-            // EXIF-aware: phone photos otherwise reach OCR rotated sideways.
-            val bitmap = ImageLoader.load(this, uri)
-            if (bitmap == null) {
-                Toast.makeText(this, getString(R.string.could_not_read_image), Toast.LENGTH_SHORT).show()
-                return
+        val started = System.currentTimeMillis()
+        progressBar.visibility = View.VISIBLE
+        // Decoding a full-size photo takes a moment: do it off the main thread
+        // so the screen doesn't freeze after the scanner closes.
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                // EXIF-aware: phone photos otherwise reach OCR rotated sideways.
+                val bitmap = withContext(Dispatchers.IO) { ImageLoader.load(this@CaptureReceiptActivity, uri) }
+                progressBar.visibility = View.GONE
+                if (bitmap == null) {
+                    Toast.makeText(this@CaptureReceiptActivity, getString(R.string.could_not_read_image), Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                Log.d("CAPTURE", "Image loaded in ${System.currentTimeMillis() - started} ms")
+                capturedBitmap = bitmap
+                // Placeholder uses fitCenter with room for its caption; real photos fill the frame.
+                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+                val edge = (1f * resources.displayMetrics.density).toInt()
+                imageView.setPadding(edge, edge, edge, edge)
+                findViewById<View>(R.id.noReceiptText).visibility = View.GONE
+                // New photo: the last reading's status no longer applies.
+                findViewById<View>(R.id.readStatusText).visibility = View.GONE
+                findViewById<View>(R.id.readWarningText).visibility = View.GONE
+                imageView.setImageBitmap(bitmap)
+                processButton.isEnabled = true
+                startAnalysis(bitmap)
+                Toast.makeText(this@CaptureReceiptActivity, message, Toast.LENGTH_SHORT).show()
+                // Keep a copy for the receipt page; the user doesn't wait for this.
+                savedImagePath = withContext(Dispatchers.IO) { saveImageToInternal(bitmap) }
+            } catch (e: Exception) {
+                progressBar.visibility = View.GONE
+                Toast.makeText(this@CaptureReceiptActivity, getString(R.string.error_with_message, e.message), Toast.LENGTH_SHORT).show()
             }
-            capturedBitmap = bitmap
-            // Placeholder uses fitCenter with room for its caption; real photos fill the frame.
-            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            val edge = (1f * resources.displayMetrics.density).toInt()
-            imageView.setPadding(edge, edge, edge, edge)
-            findViewById<View>(R.id.noReceiptText).visibility = View.GONE
-            imageView.setImageBitmap(bitmap)
-            processButton.isEnabled = true
-            startAnalysis(bitmap)
-            savedImagePath = saveImageToInternal(bitmap)
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            Toast.makeText(this, getString(R.string.error_with_message, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -289,7 +304,9 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 val oldName = currentStoreName
                 currentStoreName = newName
                 storeNameTextView.text = newName
-                if (oldName != newName) {
+                // Learn "Thong EMPIRE -> Thong Bowl", but not from the default
+                // "Receipt", which would rename every receipt without a name.
+                if (oldName != newName && !categorizationEngine.isDefaultStoreName(oldName)) {
                     saveStoreCorrection(oldName, newName)
                 }
             }
@@ -355,7 +372,12 @@ class CaptureReceiptActivity : AppCompatActivity() {
         val ai: GeminiReceiptExtractor.Result?,
         val aiError: String?,
         /** True when the fast read didn't add up and the accurate model re-read it. */
-        val rechecked: Boolean = false
+        val rechecked: Boolean = false,
+        /** Second OCR reading on an enhanced copy, made in advance when Gemini failed. */
+        val enhancedOcr: OCRHelper.OcrOutput? = null,
+        /** How long this background reading took, and when it finished. */
+        val durationMs: Long = 0L,
+        val finishedAt: Long = System.currentTimeMillis()
     )
 
     /**
@@ -374,7 +396,11 @@ class CaptureReceiptActivity : AppCompatActivity() {
 
         // 1) Gemini reads the image (OCR text as a hint).
         // 2) If there's no key, no network or no items, Process falls back to the on-device parser.
-        if (!geminiExtractor.isConfigured) return Analysis(ocr, null, null)
+        if (!geminiExtractor.isConfigured) {
+            val enhanced = ocrHelper.recognizeEnhanced(bitmap)
+            return Analysis(ocr, null, null, enhancedOcr = enhanced,
+                durationMs = System.currentTimeMillis() - started)
+        }
         val outcome = geminiExtractor.extract(bitmap, ocr.layoutText, categorizationEngine.getCategories())
         Log.d("CAPTURE", "Analysis took ${System.currentTimeMillis() - started} ms")
         val error = when {
@@ -382,7 +408,11 @@ class CaptureReceiptActivity : AppCompatActivity() {
             outcome.result.items.isEmpty() -> "no items found"
             else -> null
         }
-        return Analysis(ocr, outcome.result, error, outcome.rechecked)
+        // Gemini didn't help (offline, quota, error): prepare the offline
+        // reader's second reading now, often before the user taps Read.
+        val enhanced = if (error != null) ocrHelper.recognizeEnhanced(bitmap) else null
+        return Analysis(ocr, outcome.result, error, outcome.rechecked, enhanced,
+            durationMs = System.currentTimeMillis() - started)
     }
 
     override fun onDestroy() {
@@ -392,6 +422,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
 
     private fun processReceipt() {
         val bitmap = capturedBitmap ?: return
+        val readTapped = System.currentTimeMillis()
         processButton.isEnabled = false
         progressBar.visibility = View.VISIBLE
 
@@ -410,13 +441,20 @@ class CaptureReceiptActivity : AppCompatActivity() {
 
                 // Avoid patterns only matter for the on-device parser, so the
                 // Firestore round trip is skipped when Gemini succeeded.
-                val freshAvoids = if (usedAi) avoidPatterns else {
-                    firebaseRepo.getAvoidKeywords(threshold = 2L).also { avoidPatterns = it }
+                // The avoid words were loaded when the screen opened; use that
+                // copy straight away (offline, Firestore can take seconds to
+                // give up) and refresh it quietly for the next receipt.
+                val freshAvoids = avoidPatterns
+                if (!usedAi) workScope.launch {
+                    kotlinx.coroutines.withTimeoutOrNull(10_000) {
+                        firebaseRepo.getAvoidKeywords(threshold = 2L)
+                    }?.let { avoidPatterns = it }
                 }
                 val rawItems: List<ReceiptItem>
                 val detectedStore: String
                 val receiptTotal: Double?
                 val extras: Double
+                var offlineCharges: List<ReceiptCharge> = emptyList()
                 if (usedAi) {
                     rawItems = ai!!.items.map {
                         ReceiptItem(
@@ -430,11 +468,23 @@ class CaptureReceiptActivity : AppCompatActivity() {
                     receiptTotal = ai.total
                     extras = ai.extras
                 } else {
-                    val result = receiptParser.parseReceipt(ocr.text, freshAvoids)
-                    rawItems = result.items
-                    detectedStore = receiptParser.detectStoreName(ocr.text)
-                    receiptTotal = result.receiptTotal.takeIf { it > 0.0 }
-                    extras = 0.0
+                    // Offline: read the receipt again on an enhanced copy, parse
+                    // both readings row by row (name on the left, price on the
+                    // right), keep the one that matches the printed total, then
+                    // let the total fix a single misread price. The old
+                    // block-based parser is only a last resort.
+                    val enhancedOcr = analysis.enhancedOcr ?: ocrHelper.recognizeEnhanced(bitmap)
+                    val passes = listOf(ocr, enhancedOcr).filter { it.text.isNotBlank() }.ifEmpty { listOf(ocr) }
+                    val rowParser = com.jmti.budgetfy.utils.RowReceiptParser(receiptParser)
+                    val best = OfflineReceiptReader.pickBest(
+                        passes.map { OfflineReceiptReader.rowReading(it, rowParser) } +
+                                passes.map { OfflineReceiptReader.Reading(it, receiptParser.parseReceipt(it.text, freshAvoids)) }
+                    )
+                    rawItems = OfflineReceiptReader.repairToTotal(best.result)
+                    detectedStore = receiptParser.detectStoreName(best.ocr.text)
+                    receiptTotal = best.result.receiptTotal.takeIf { best.result.totalFound }
+                    extras = best.result.extras
+                    offlineCharges = best.result.charges
                 }
 
                 // Learned corrections always win; Gemini's category fills in
@@ -452,15 +502,23 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 val aiError = analysis.aiError
 
                 withContext(Dispatchers.Main) {
-                    currentCharges = if (usedAi) ai!!.charges.map {
-                        ReceiptCharge(type = it.type, rate = it.rate, amount = it.amount, inclusive = it.inclusive)
-                    } else emptyList()
+                    currentCharges = if (usedAi) {
+                        val read = ai!!.charges.map {
+                            ReceiptCharge(type = it.type, rate = it.rate, amount = it.amount, inclusive = it.inclusive)
+                        }
+                        // Whole-bill discount ("BUY 3 FOR RM 18 -RM2.94"): a minus
+                        // line, so what was paid = items + charges - discount.
+                        val discount = ai.discount?.takeIf { it > 0.0 }
+                        if (discount != null) read + ReceiptCharge(type = "Discount", amount = -discount) else read
+                    } else offlineCharges
                     currentPrintedTotal = receiptTotal
 
                     extractedItems.clear()
                     extractedItems.addAll(correctedItems)
                     itemAdapter.updateItems(extractedItems.toList())
                     refreshTotals()
+                    Log.d("CAPTURE", "Read tapped -> items shown in ${System.currentTimeMillis() - readTapped} ms" +
+                            if (usedAi) " (Gemini)" else " (offline)")
 
                     val learnedStore = categorizationEngine.applyLearnedStoreName(detectedStore, learnedKeywords)
                     currentStoreName = learnedStore
@@ -474,25 +532,32 @@ class CaptureReceiptActivity : AppCompatActivity() {
                         Log.w("CAPTURE", "AI reading failed: $aiError")
                     }
 
-                    val message = when {
-                        extractedItems.isEmpty() ->
-                            getString(R.string.no_items_found_add)
-                        check.matches == false ->
-                            getString(
-                                R.string.found_items_mismatch, extractedItems.size,
-                                "%.2f".format(check.itemsSum), "%.2f".format(check.receiptTotal)
-                            )
-                        else ->
-                            getString(R.string.found_items_ok, extractedItems.size)
+                    // Status line under "Items" instead of a pop-up:
+                    // "Found 2 items. Read in 1.1 s" (+ " · offline mode").
+                    // Time = the reading work itself (from the photo appearing),
+                    // not the time spent before tapping Read.
+                    val now = System.currentTimeMillis()
+                    val workMs = analysis.durationMs + (now - maxOf(readTapped, analysis.finishedAt))
+                    val count = extractedItems.size
+                    val status = findViewById<TextView>(R.id.readStatusText)
+                    val warning = findViewById<TextView>(R.id.readWarningText)
+                    status.visibility = View.VISIBLE
+                    status.text = if (count == 0) {
+                        getString(R.string.no_items_found_add)
+                    } else {
+                        val found = if (count == 1) getString(R.string.one_item) else getString(R.string.n_items, count)
+                        getString(R.string.read_status, found, String.format("%.1f", workMs / 1000.0)) +
+                                if (usedAi) "" else getString(R.string.read_status_offline)
                     }
-                    val source = when {
-                        usedAi && analysis.rechecked -> getString(R.string.double_checked)
-                        usedAi -> ""
-                        aiError != null -> getString(R.string.ai_unavailable, aiError)
-                        else -> ""
+                    if (count > 0 && check.matches == false) {
+                        warning.visibility = View.VISIBLE
+                        warning.text = getString(
+                            R.string.read_warning_mismatch,
+                            "%.2f".format(check.itemsSum + extras), "%.2f".format(check.receiptTotal)
+                        )
+                    } else {
+                        warning.visibility = View.GONE
                     }
-                    Toast.makeText(this@CaptureReceiptActivity, message + source,
-                        Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -593,8 +658,10 @@ class CaptureReceiptActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // Receipt text stays readable at ~1600px.
+                val saveStarted = System.currentTimeMillis()
                 val jpeg = photo?.let { ImageCompress.toJpeg(it, maxSide = 1600, maxBytes = 700_000) }
                 firebaseRepo.saveReceipt(userId, receipt, jpeg)
+                Log.d("CAPTURE", "Saved in ${System.currentTimeMillis() - saveStarted} ms")
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
                     Toast.makeText(this@CaptureReceiptActivity,

@@ -81,7 +81,7 @@ class ReceiptParser {
         parseReceipt(text, avoidPatterns).items
 
     fun parseReceipt(text: String, avoidPatterns: List<String> = emptyList()): ParseResult {
-        val lines = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val lines = text.lines().map { normalizePriceLine(it.trim()) }.filter { it.isNotEmpty() }
         Log.d("PARSER", "==== Total lines: ${lines.size} ====")
 
         // ── Step 1: Extract receipt total ──
@@ -99,6 +99,7 @@ class ReceiptParser {
         }
         Log.d("PARSER", "Total line at index $totalLineIndex")
         Log.d("PARSER", "Receipt total: $receiptTotal")
+        val totalFound = receiptTotal > 0.0
 
         // ── Step 2: Identify item candidates ──
         val nameIndices = mutableListOf<Int>()
@@ -256,7 +257,7 @@ class ReceiptParser {
         if (receiptTotal == 0.0 && items.isNotEmpty()) receiptTotal = items.sumOf { it.price }
 
         Log.d("PARSER", "FINAL: ${items.size} items, total=RM $receiptTotal")
-        return ParseResult(items = items, receiptTotal = receiptTotal)
+        return ParseResult(items = items, receiptTotal = receiptTotal, totalFound = totalFound)
     }
 
     // ============================================================
@@ -666,8 +667,50 @@ class ReceiptParser {
         return name.trim().trimEnd('.', ',', '-').ifEmpty { "Receipt" }
     }
 
+    // ============================================================
+    //  Price clean-up (offline accuracy)
+    // ============================================================
+
+    /** A price as OCR may misread it: "7.9O", "7,90", "1S.50", "7. 90", optional "RM". */
+    private val fuzzyPriceLine = Regex(
+        "^(R[MHJN]\\s*)?([0-9OoSBlI|]{1,4})\\s*[.,]\\s*([0-9OoSBlI|]{2})(?:\\s+(?:SR|ZR|SV|S|Z|T|E|X|\\*))?$"
+    )
+
+    private fun ocrDigits(s: String) = buildString {
+        for (c in s) append(
+            when (c) {
+                'O', 'o' -> '0'
+                'S' -> '5'
+                'B' -> '8'
+                'l', 'I', '|' -> '1'
+                else -> c
+            }
+        )
+    }
+
+    /**
+     * Fixes OCR mix-ups in lines that are only a price, so the parser can use
+     * them: letters that look like digits, a comma or space around the decimal
+     * point, and tax codes after the price ("7.90 SR"). Other lines (item
+     * names, addresses) are left alone; at least one real digit is required.
+     */
+    internal fun normalizePriceLine(line: String): String {
+        val t = line.trim()
+        val m = fuzzyPriceLine.matchEntire(t) ?: return line
+        val (prefix, whole, cents) = m.destructured
+        if (!(whole + cents).any { it.isDigit() }) return line
+        val fixed = "${ocrDigits(whole)}.${ocrDigits(cents)}"
+        return if (prefix.isNotEmpty()) "RM $fixed" else fixed
+    }
+
     data class ParseResult(
         val items: List<ReceiptItem>,
-        val receiptTotal: Double
+        val receiptTotal: Double,
+        /** True when a printed total was found (not just the items added up). */
+        val totalFound: Boolean = false,
+        /** Added charges + rounding, so items + extras should equal the total. */
+        val extras: Double = 0.0,
+        /** Tax / service charge lines found on the receipt. */
+        val charges: List<com.jmti.budgetfy.models.ReceiptCharge> = emptyList()
     )
 }

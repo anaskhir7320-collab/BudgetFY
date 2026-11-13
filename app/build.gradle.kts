@@ -18,6 +18,9 @@ plugins {
 }
 
 android {
+    // Unit tests: android.util.Log calls return defaults instead of failing.
+    testOptions { unitTests.isReturnDefaultValues = true }
+
     namespace = "com.jmti.budgetfy"
     compileSdk = 34
 

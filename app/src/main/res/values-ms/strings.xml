@@ -335,4 +335,10 @@
     <string name="widget_days_left">%1$d hari lagi</string>
     <string name="widget_one_day_left">1 hari lagi</string>
     <string name="widget_last">Terakhir: %1$s · RM %2$s</string>
+
+    <!-- Capture: status line after reading -->
+    <string name="read_status">%1$s dijumpai. Dibaca dalam %2$s s</string>
+    <string name="read_status_offline">" · mod luar talian"</string>
+    <string name="read_warning_mismatch">⚠ Jumlah item RM %1$s, tetapi resit menunjukkan RM %2$s. Sila semak item.</string>
+    <string name="charge_discount">Diskaun</string>
 </resources>

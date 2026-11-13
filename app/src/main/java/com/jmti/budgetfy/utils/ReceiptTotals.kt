@@ -58,9 +58,14 @@ object ReceiptTotals {
                 setTextColor(secondary)
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             })
-            // Included taxes are already in the item prices, so no "+".
+            // Included taxes are already in the item prices, so no "+";
+            // discounts are stored as minus amounts.
             row.addView(TextView(context).apply {
-                text = if (c.inclusive) rm(c.amount) else "+ ${rm(c.amount)}"
+                text = when {
+                    c.inclusive -> rm(c.amount)
+                    c.amount < 0.0 -> "− ${rm(-c.amount)}"
+                    else -> "+ ${rm(c.amount)}"
+                }
                 textSize = 14f
                 setTextColor(if (c.inclusive) secondary else primary)
             })
@@ -86,7 +91,8 @@ object ReceiptTotals {
             "GST" -> R.string.charge_gst
             "Service Charge" -> R.string.charge_service_charge
             "Tourism Tax" -> R.string.charge_tourism_tax
-            "Other" -> R.string.charge_other
+            "Discount" -> R.string.charge_discount
+            "Other" -> R.string.charge_tax // "Tax Amount" lines: show "Tax", not "Other"
             else -> R.string.charge_tax
         }
         val pct = c.rate?.let { r -> if (r % 1.0 == 0.0) "${r.toLong()}%" else "$r%" }

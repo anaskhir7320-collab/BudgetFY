@@ -337,4 +337,10 @@
     <string name="widget_days_left">%1$d days left</string>
     <string name="widget_one_day_left">1 day left</string>
     <string name="widget_last">Last: %1$s · RM %2$s</string>
+
+    <!-- Capture: status line after reading -->
+    <string name="read_status">Found %1$s. Read in %2$s s</string>
+    <string name="read_status_offline">" · offline mode"</string>
+    <string name="read_warning_mismatch">⚠ Items add up to RM %1$s, but the receipt says RM %2$s. Please check the items.</string>
+    <string name="charge_discount">Discount</string>
 </resources>

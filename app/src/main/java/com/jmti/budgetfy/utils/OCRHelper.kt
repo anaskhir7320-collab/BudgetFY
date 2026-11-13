@@ -23,9 +23,19 @@ class OCRHelper {
 
     suspend fun extractTextFromImage(bitmap: Bitmap): String = recognize(bitmap).text
 
-    suspend fun recognize(bitmap: Bitmap): OcrOutput {
+    suspend fun recognize(bitmap: Bitmap): OcrOutput = recognize(bitmap, enhanced = false)
+
+    /**
+     * Second reading of the same receipt on a cleaned-up copy (grayscale,
+     * stretched contrast). Faded thermal print often reads better this way;
+     * used by the offline reader, which keeps whichever reading adds up.
+     */
+    suspend fun recognizeEnhanced(bitmap: Bitmap): OcrOutput = recognize(bitmap, enhanced = true)
+
+    private suspend fun recognize(bitmap: Bitmap, enhanced: Boolean): OcrOutput {
         return try {
-            val processed = preprocess(bitmap)
+            val scaled = preprocess(bitmap)
+            val processed = if (enhanced) enhance(scaled) else scaled
             val image = InputImage.fromBitmap(processed, 0)
             val result = recognizer.process(image).await()
 
@@ -59,14 +69,25 @@ class OCRHelper {
         val heights = lines.map { it.boundingBox!!.height() }.sorted()
         val rowTolerance = heights[heights.size / 2] * 0.6f
 
+        // A slightly tilted receipt puts the right-hand column (prices) a bit
+        // higher or lower than its label on the left, so rows get paired one
+        // off. Measure the tilt from each line's top edge and straighten the
+        // positions before grouping.
+        val slope = medianSlope(lines)
+        android.util.Log.d("OCRTEST", "tilt correction: %.4f px/px (%.1f°)".format(slope, Math.toDegrees(kotlin.math.atan(slope.toDouble()))))
+        fun rowY(line: Text.Line): Float {
+            val box = line.boundingBox!!
+            return box.exactCenterY() - slope * box.exactCenterX()
+        }
+
         val rows = mutableListOf<MutableList<Text.Line>>()
         val rowCenters = mutableListOf<Float>()
-        for (line in lines.sortedBy { it.boundingBox!!.exactCenterY() }) {
-            val centerY = line.boundingBox!!.exactCenterY()
+        for (line in lines.sortedBy { rowY(it) }) {
+            val centerY = rowY(line)
             val last = rows.lastIndex
             if (last >= 0 && abs(centerY - rowCenters[last]) <= rowTolerance) {
                 rows[last].add(line)
-                rowCenters[last] = rows[last].map { it.boundingBox!!.exactCenterY() }.average().toFloat()
+                rowCenters[last] = rows[last].map { rowY(it) }.average().toFloat()
             } else {
                 rows.add(mutableListOf(line))
                 rowCenters.add(centerY)
@@ -76,6 +97,22 @@ class OCRHelper {
         return rows.joinToString("\n") { row ->
             row.sortedBy { it.boundingBox!!.left }.joinToString("   ") { it.text }
         }
+    }
+
+    /**
+     * Typical tilt of the text (pixels down per pixel across), from the top
+     * edge of every reasonably wide line. 0 when it can't be measured.
+     */
+    private fun medianSlope(lines: List<Text.Line>): Float {
+        val slopes = lines.mapNotNull { line ->
+            val p = line.cornerPoints ?: return@mapNotNull null
+            if (p.size < 2) return@mapNotNull null
+            val dx = (p[1].x - p[0].x).toFloat()
+            if (dx < 60f) return@mapNotNull null // too short to measure reliably
+            ((p[1].y - p[0].y) / dx).takeIf { abs(it) < 0.2f } // ignore odd ones (> ~11°)
+        }.sorted()
+        if (slopes.size < 3) return 0f
+        return slopes[slopes.size / 2]
     }
 
     private fun preprocess(src: Bitmap): Bitmap {
@@ -89,6 +126,54 @@ class OCRHelper {
                 true
             )
         } else src
+    }
+
+    /**
+     * Grayscale + contrast stretch: the darkest 2% of pixels become black and
+     * the lightest 2% white, so faint grey print turns into solid dark text.
+     */
+    private fun enhance(src: Bitmap): Bitmap {
+        // Measure brightness on a small copy (cheap), then apply the stretch
+        // to the full image with a colour filter (no per-pixel arrays).
+        val sampleW = 400
+        val sample = Bitmap.createScaledBitmap(
+            src, sampleW, (src.height * sampleW.toFloat() / src.width).toInt().coerceAtLeast(1), true
+        )
+        val px = IntArray(sample.width * sample.height)
+        sample.getPixels(px, 0, sample.width, 0, 0, sample.width, sample.height)
+        val hist = IntArray(256)
+        for (c in px) {
+            hist[((c shr 16 and 0xFF) * 299 + (c shr 8 and 0xFF) * 587 + (c and 0xFF) * 114) / 1000]++
+        }
+        fun percentile(p: Double): Int {
+            val target = (px.size * p).toLong()
+            var acc = 0L
+            for (v in 0..255) { acc += hist[v]; if (acc >= target) return v }
+            return 255
+        }
+        val lo = percentile(0.02)
+        val hi = percentile(0.98)
+        if (hi - lo < 10) return src // flat image, nothing to stretch
+
+        // Grayscale, then map [lo, hi] to [0, 255].
+        val scale = 255f / (hi - lo)
+        val offset = -lo * scale
+        val gray = android.graphics.ColorMatrix().apply { setSaturation(0f) }
+        val stretch = android.graphics.ColorMatrix(floatArrayOf(
+            scale, 0f, 0f, 0f, offset,
+            0f, scale, 0f, 0f, offset,
+            0f, 0f, scale, 0f, offset,
+            0f, 0f, 0f, 1f, 0f
+        ))
+        gray.postConcat(stretch)
+
+        val out = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+        val paint = android.graphics.Paint().apply {
+            colorFilter = android.graphics.ColorMatrixColorFilter(gray)
+            isFilterBitmap = true
+        }
+        android.graphics.Canvas(out).drawBitmap(src, 0f, 0f, paint)
+        return out
     }
 
     private fun correctCommonOCRErrors(text: String): String {

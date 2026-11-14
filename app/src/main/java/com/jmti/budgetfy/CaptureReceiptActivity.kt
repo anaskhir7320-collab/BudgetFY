@@ -53,6 +53,11 @@ import java.io.FileOutputStream
 
 class CaptureReceiptActivity : AppCompatActivity() {
 
+    companion object {
+        /** Longest wait for Gemini before showing the offline reading. Normal replies take 3-6 s. */
+        private const val GEMINI_LIMIT_MS = 15_000L
+    }
+
     private lateinit var imageView: ShapeableImageView
     private lateinit var recyclerView: RecyclerView
     private lateinit var captureButton: MaterialButton
@@ -401,7 +406,13 @@ class CaptureReceiptActivity : AppCompatActivity() {
             return Analysis(ocr, null, null, enhancedOcr = enhanced,
                 durationMs = System.currentTimeMillis() - started)
         }
-        val outcome = geminiExtractor.extract(bitmap, ocr.layoutText, categorizationEngine.getCategories())
+        // A stuck connection can leave Gemini silent for ~2 minutes. Stop
+        // waiting after GEMINI_LIMIT_MS and use the offline reader instead.
+        val outcome = kotlinx.coroutines.withTimeoutOrNull(GEMINI_LIMIT_MS) {
+            kotlinx.coroutines.runInterruptible(Dispatchers.IO) {
+                geminiExtractor.extract(bitmap, ocr.layoutText, categorizationEngine.getCategories())
+            }
+        } ?: GeminiReceiptExtractor.Outcome(null, "Gemini took longer than ${GEMINI_LIMIT_MS / 1000} s")
         Log.d("CAPTURE", "Analysis took ${System.currentTimeMillis() - started} ms")
         val error = when {
             outcome.result == null -> outcome.error

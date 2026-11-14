@@ -210,8 +210,11 @@ class GeminiReceiptExtractor(
     private class Request(val content: Content, val schema: Schema)
 
     private fun buildRequest(bitmap: Bitmap, ocrText: String, categories: List<String>): Request {
-        // Gemini reads receipts well at ~2000px; larger only adds upload time.
-        val scaled = ImageLoader.scaleDown(bitmap, MAX_IMAGE_SIDE)
+        // Smaller upload = faster and steadier on mobile data. Capped by total
+        // pixels (not the long side), so tall narrow receipts keep their width
+        // and small print stays readable.
+        val scaled = scaleToPixels(bitmap, MAX_IMAGE_PIXELS)
+        Log.d(TAG, "Sending ${scaled.width}x${scaled.height} (from ${bitmap.width}x${bitmap.height})")
         val prompt = buildPrompt(ocrText, categories)
         return Request(
             content = content {
@@ -219,6 +222,16 @@ class GeminiReceiptExtractor(
                 text(prompt)
             },
             schema = responseSchema(categories)
+        )
+    }
+
+    /** Shrinks [src] so width x height <= [maxPixels]; never enlarges. */
+    private fun scaleToPixels(src: Bitmap, maxPixels: Int): Bitmap {
+        val pixels = src.width.toLong() * src.height
+        if (pixels <= maxPixels) return src
+        val ratio = kotlin.math.sqrt(maxPixels.toDouble() / pixels)
+        return Bitmap.createScaledBitmap(
+            src, (src.width * ratio).toInt().coerceAtLeast(1), (src.height * ratio).toInt().coerceAtLeast(1), true
         )
     }
 
@@ -434,7 +447,8 @@ class GeminiReceiptExtractor(
 
     companion object {
         private const val TAG = "GEMINI"
-        private const val MAX_IMAGE_SIDE = 2048
+        /** ~1.8 MP, e.g. 1160 x 1550 for a normal receipt (was up to 2048 px long side, ~3 MP). */
+        private const val MAX_IMAGE_PIXELS = 1_800_000
 
         private val CHARGE_TYPES = listOf(
             "SST", "Sales Tax", "Service Tax", "GST", "Service Charge", "Tourism Tax", "Other"

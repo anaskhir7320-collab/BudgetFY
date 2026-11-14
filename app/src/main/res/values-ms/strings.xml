@@ -341,4 +341,15 @@
     <string name="read_status_offline">" · mod luar talian"</string>
     <string name="read_warning_mismatch">⚠ Jumlah item RM %1$s, tetapi resit menunjukkan RM %2$s. Sila semak item.</string>
     <string name="charge_discount">Diskaun</string>
+    <string name="one_add_on">1 tambahan</string>
+    <string name="n_add_ons">%1$d tambahan</string>
+
+    <!-- Manual add-ons -->
+    <string name="add_add_on_action">+ Tambah tambahan</string>
+    <string name="make_add_on_of_above">Jadikan tambahan item di atas</string>
+    <string name="add_add_on">Tambah tambahan</string>
+    <string name="add_on_name">Nama tambahan</string>
+    <string name="add_on_price_optional">Harga (biarkan kosong jika percuma)</string>
+    <string name="remove_add_on_title">Buang tambahan?</string>
+    <string name="remove_add_on_message">Buang "%1$s" daripada item ini? Harganya akan ditolak daripada item.</string>
 </resources>

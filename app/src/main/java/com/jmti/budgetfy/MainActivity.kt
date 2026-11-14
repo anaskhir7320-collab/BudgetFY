@@ -374,7 +374,9 @@ class MainActivity : AppCompatActivity() {
     private fun labelOldPhotosOnce(userId: String) {
         val photosKey = "photos_labelled_$userId"
         val receiptsKey = "receipts_tidied_$userId"
-        if (prefs.getBoolean(photosKey, false) && prefs.getBoolean(receiptsKey, false)) return
+        val summaryKey = "receipts_summary_$userId"
+        if (prefs.getBoolean(photosKey, false) && prefs.getBoolean(receiptsKey, false) &&
+            prefs.getBoolean(summaryKey, false)) return
         CoroutineScope(Dispatchers.IO).launch {
             val name = prefs.getString("display_name", null) ?: firebaseRepo.getCurrentUser()?.displayName
             // Only stop trying once it fully worked (e.g. not while a rule blocks it).
@@ -387,6 +389,11 @@ class MainActivity : AppCompatActivity() {
                 val n = firebaseRepo.tidyOldReceipts(userId, name)
                 Log.d("HOME", "Tidied $n old receipts")
                 if (n >= 0) prefs.edit().putBoolean(receiptsKey, true).apply()
+            }
+            if (!prefs.getBoolean(summaryKey, false)) {
+                val n = firebaseRepo.addSummaryToOldReceipts(userId, name)
+                Log.d("HOME", "Added Summary to $n old receipts")
+                if (n >= 0) prefs.edit().putBoolean(summaryKey, true).apply()
             }
         }
     }

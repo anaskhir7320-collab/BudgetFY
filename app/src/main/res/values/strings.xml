@@ -343,4 +343,15 @@
     <string name="read_status_offline">" · offline mode"</string>
     <string name="read_warning_mismatch">⚠ Items add up to RM %1$s, but the receipt says RM %2$s. Please check the items.</string>
     <string name="charge_discount">Discount</string>
+    <string name="one_add_on">1 add-on</string>
+    <string name="n_add_ons">%1$d add-ons</string>
+
+    <!-- Manual add-ons -->
+    <string name="add_add_on_action">+ Add add-on</string>
+    <string name="make_add_on_of_above">Make add-on of item above</string>
+    <string name="add_add_on">Add add-on</string>
+    <string name="add_on_name">Add-on name</string>
+    <string name="add_on_price_optional">Price (leave empty if free)</string>
+    <string name="remove_add_on_title">Remove add-on?</string>
+    <string name="remove_add_on_message">Remove "%1$s" from this item? Its price is taken off the item.</string>
 </resources>

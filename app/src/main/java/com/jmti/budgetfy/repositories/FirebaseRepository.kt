@@ -11,8 +11,10 @@ import com.jmti.budgetfy.models.Budget
 import com.jmti.budgetfy.models.BudgetCategory
 import com.jmti.budgetfy.models.LearnedKeyword
 import com.jmti.budgetfy.models.Receipt
+import com.jmti.budgetfy.models.ReceiptItem
 import com.jmti.budgetfy.models.User
 import com.jmti.budgetfy.utils.CategorizationEngine
+import com.jmti.budgetfy.utils.ReceiptSummary
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -24,6 +26,8 @@ class FirebaseRepository {
     companion object {
         /** Receipt photos, one document per receipt, keyed by receipt id. */
         private const val RECEIPT_IMAGES = "receipt_images"
+        /** Readable, ordered copy of a receipt for the Firebase console only. */
+        private const val SUMMARY = "Summary"
         /** How long to wait for Firestore before using the phone's copy (offline). */
         private const val QUICK_MS = 1500L
     }
@@ -215,7 +219,7 @@ class FirebaseRepository {
      * if there is none. Works offline: the change is kept on the phone and
      * sent to Firestore when the connection is back.
      */
-    suspend fun updateBudgetSpent(userId: String, category: String, amount: Double) {
+    suspend fun updateBudgetSpent(userId: String, category: String, amount: Double, createIfMissing: Boolean = true) {
         val month = getCurrentMonth()
         val query = firestore.collection("budgets")
             .whereEqualTo("userId", userId)
@@ -229,7 +233,7 @@ class FirebaseRepository {
                 firestore.collection("budgets").document(snapshot.documents.first().id)
                     .update("spent", com.google.firebase.firestore.FieldValue.increment(amount))
             )
-        } else {
+        } else if (createIfMissing) {
             val overall = kotlinx.coroutines.withTimeoutOrNull(QUICK_MS) { getOverallBudget(userId, preferCache = true) } ?: 0.0
             val defaultLimits = categorizationEngine.getDefaultBudgetLimits()
             val desiredLimit = defaultLimits[category] ?: 100.0
@@ -365,7 +369,10 @@ class FirebaseRepository {
         }
         awaitBriefly(ref.set(toSave))
         // Readable labels for the Firebase console (not part of the app's model).
-        awaitBriefly(ref.set(ownerLabels(ownerName, System.currentTimeMillis()), com.google.firebase.firestore.SetOptions.merge()))
+        awaitBriefly(ref.set(
+            ownerLabels(ownerName, System.currentTimeMillis()) + (SUMMARY to summaryOf(toSave, ownerName)),
+            SetOptions.merge()
+        ))
         // One budget update per category, not per item.
         val share = receipt.chargeShare()
         receipt.items.groupBy { it.category }.forEach { (category, items) ->
@@ -492,13 +499,83 @@ class FirebaseRepository {
         }
     }
 
-    suspend fun renameReceipt(receiptId: String, newName: String) {
+    /**
+     * The read-only "Summary" map for the Firebase console, in a fixed order
+     * (see [ReceiptSummary]). [ownerName] falls back to the account's name.
+     */
+    private fun summaryOf(receipt: Receipt, ownerName: String?): Map<String, String> =
+        ReceiptSummary.build(
+            receipt,
+            ownerName?.takeIf { it.isNotBlank() } ?: auth.currentUser?.displayName,
+            auth.currentUser?.email
+        )
+
+    /**
+     * One-time: adds the "Summary" map to receipts saved before it existed.
+     * @return how many were updated, or -1 if any failed (tried again later).
+     */
+    suspend fun addSummaryToOldReceipts(userId: String, ownerName: String?): Int {
+        var count = 0
+        var failed = false
+        for (r in getReceipts(userId)) {
+            try {
+                firestore.collection("receipts").document(r.id)
+                    .update(SUMMARY, summaryOf(r, ownerName)).await()
+                count++
+            } catch (e: Exception) {
+                failed = true
+                Log.e("FirebaseRepo", "addSummaryToOldReceipts ${r.id}: ${e.message}")
+            }
+        }
+        return if (failed) -1 else count
+    }
+
+    suspend fun renameReceipt(receipt: Receipt, newName: String, ownerName: String? = null) {
         try {
-            firestore.collection("receipts").document(receiptId)
-                .update("storeName", newName).await()
+            firestore.collection("receipts").document(receipt.id).update(
+                mapOf(
+                    "storeName" to newName,
+                    SUMMARY to summaryOf(receipt.copy(storeName = newName), ownerName)
+                )
+            ).await()
         } catch (e: Exception) {
             Log.e("FirebaseRepo", "renameReceipt error: ${e.message}")
         }
+    }
+
+    /**
+     * Saves an edited item list on a saved receipt (names, prices, add-ons,
+     * items merged as add-ons): the receipt total moves by the change in item
+     * prices, and each category's budget by its own difference.
+     * @return the updated receipt.
+     */
+    suspend fun updateReceiptItems(
+        receipt: Receipt, newItems: List<ReceiptItem>, ownerName: String? = null
+    ): Receipt {
+        val oldSum = receipt.items.sumOf { it.price }
+        val newSum = newItems.sumOf { it.price }
+        val newTotal = Math.round((receipt.totalAmount + newSum - oldSum) * 100) / 100.0
+        val updated = receipt.copy(items = newItems, totalAmount = newTotal)
+
+        val oldByCategory = receipt.items.groupBy { it.category }
+            .mapValues { (_, list) -> list.sumOf { it.price } * receipt.chargeShare() }
+        val newByCategory = newItems.groupBy { it.category }
+            .mapValues { (_, list) -> list.sumOf { it.price } * updated.chargeShare() }
+        for (category in oldByCategory.keys + newByCategory.keys) {
+            val delta = (newByCategory[category] ?: 0.0) - (oldByCategory[category] ?: 0.0)
+            if (kotlin.math.abs(delta) > 0.001) {
+                updateBudgetSpent(receipt.userId, category, delta, createIfMissing = delta > 0)
+            }
+        }
+        awaitBriefly(
+            firestore.collection("receipts").document(receipt.id)
+                .update(mapOf(
+                    "items" to newItems,
+                    "totalAmount" to newTotal,
+                    SUMMARY to summaryOf(updated, ownerName)
+                ))
+        )
+        return updated
     }
 
     suspend fun updateItemCategory(receipt: Receipt, itemIndex: Int, newCategory: String) {

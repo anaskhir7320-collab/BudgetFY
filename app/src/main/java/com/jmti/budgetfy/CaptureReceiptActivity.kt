@@ -213,6 +213,13 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 itemAdapter.updateItems(extractedItems.toList())
                 refreshTotals()
             },
+            onItemsReplaced = { newItems ->
+                // Add-on added/removed, or an item turned into an add-on.
+                extractedItems.clear()
+                extractedItems.addAll(newItems)
+                itemAdapter.updateItems(extractedItems.toList())
+                refreshTotals()
+            },
             onItemDeleted = { item ->
                 val idx = extractedItems.indexOfFirst {
                     it.name == item.name && it.price == item.price
@@ -461,7 +468,7 @@ class CaptureReceiptActivity : AppCompatActivity() {
                         firebaseRepo.getAvoidKeywords(threshold = 2L)
                     }?.let { avoidPatterns = it }
                 }
-                val rawItems: List<ReceiptItem>
+                var rawItems: List<ReceiptItem>
                 val detectedStore: String
                 val receiptTotal: Double?
                 val extras: Double
@@ -472,9 +479,12 @@ class CaptureReceiptActivity : AppCompatActivity() {
                             name = it.name,
                             quantity = it.quantity.toString(),
                             price = it.lineTotal,
-                            category = it.category ?: "Other"
+                            category = it.category ?: "Other",
+                            addOns = it.addOns.map { a -> com.jmti.budgetfy.models.AddOn(a.name, a.price) }
                         )
                     }
+                    // Lines marked ":" / "+" on the receipt are add-ons, even when priced.
+                    rawItems = com.jmti.budgetfy.utils.AddOnMerger.attachMarkedAddOns(rawItems, ocr.layoutText)
                     detectedStore = ai.storeName ?: receiptParser.detectStoreName(ocr.text)
                     receiptTotal = ai.total
                     extras = ai.extras

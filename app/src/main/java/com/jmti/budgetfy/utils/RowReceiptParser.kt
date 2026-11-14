@@ -1,6 +1,7 @@
 package com.jmti.budgetfy.utils
 
 import com.jmti.budgetfy.models.ReceiptCharge
+import com.jmti.budgetfy.models.AddOn
 import com.jmti.budgetfy.models.ReceiptItem
 import kotlin.math.abs
 import kotlin.math.round
@@ -23,6 +24,8 @@ class RowReceiptParser(private val parser: ReceiptParser = ReceiptParser()) {
 
     // A price at the end of a row, possibly negative or written ".01".
     private val trailingPrice = Regex("(-?\\s?(?:\\d{1,4})?\\.\\s?\\d{2})(-)?\\s*(?:SR|ZR|SV|S|Z|T|E|X|\\*)?\\s*$")
+    // "Feature: Normal Ice, Normal Sugar", "Remark: less spicy".
+    private val featureRow = Regex("^\\s*(feature|features|remark|remarks|note|notes|option|options)\\s*:", RegexOption.IGNORE_CASE)
     // Supermarket item barcode (EAN-13 and similar) at the start of an item line.
     private val barcode = Regex("\\b\\d{12,14}\\b")
     // Price details: "7.460 kg @ 6.89/kg", "2 @ 14.99", "(11.20/ea)"; not "OIL 1KG".
@@ -72,6 +75,7 @@ class RowReceiptParser(private val parser: ReceiptParser = ReceiptParser()) {
         var appended = 0
         var inModifiers = false
         var itemDiscount = 0.0                  // promotions listed between the items
+        var addOnParts = 0                      // wrapped pieces in the current add-on's name
         var end = rows.size
 
         for (i in start until rows.size) {
@@ -106,7 +110,14 @@ class RowReceiptParser(private val parser: ReceiptParser = ReceiptParser()) {
                 continue
             }
 
+            // Add-on / option line under an item (":Egg Noodle  0.00", "+Brownie 0.60",
+            // "Level 1  1  0.00"): kept on that item, never a separate item.
             if (modifierStart.containsMatchIn(row) || (price != null && price.first == 0.0)) {
+                val addOnName = cleanAddOn(if (price != null) beforePrice else row)
+                if (items.isNotEmpty() && addOnName.count { it.isLetter() } >= 2) {
+                    addAddOn(items, AddOn(addOnName, price?.first?.coerceAtLeast(0.0) ?: 0.0))
+                    addOnParts = 1
+                }
                 inModifiers = true
                 lastItemOpen = false
                 pending.clear()
@@ -114,9 +125,32 @@ class RowReceiptParser(private val parser: ReceiptParser = ReceiptParser()) {
             }
 
             if (price == null) {
+                // "Feature: Normal Ice, Normal Sugar" (Mixue): options of the item above.
+                val feature = featureRow.find(row)
+                if (feature != null) {
+                    if (items.isNotEmpty()) {
+                        row.substring(feature.range.last + 1).split(',').map { cleanAddOn(it) }
+                            .filter { it.count { c -> c.isLetter() } >= 2 }
+                            .forEach { addAddOn(items, AddOn(it, 0.0)) }
+                    }
+                    lastItemOpen = false
+                    pending.clear()
+                    continue
+                }
                 if (metadataRow.containsMatchIn(row)) { pending.clear(); lastItemOpen = false; continue }
                 if (!row.any { it.isLetter() }) continue
-                if (inModifiers) continue // e.g. "side" wrapping from ":All Topping on"
+                if (inModifiers) {
+                    // A short wrapped piece ("side", "Recommendati", "on\"") continues the
+                    // last add-on's name; a full line is the next item's name.
+                    val words = row.split(Regex("\\s+")).size
+                    val continues = words <= 2 || row.first().isLowerCase() || row.startsWith("\"")
+                    if (continues && addOnParts < 4 && items.lastOrNull()?.addOns?.isNotEmpty() == true) {
+                        extendLastAddOn(items, row.trim())
+                        addOnParts++
+                        continue
+                    }
+                    inModifiers = false
+                }
                 // Price details under an item: "7.460 kg @ 6.89/kg", "2 @ 14.99", "(11.20/ea)".
                 if (detailRow.containsMatchIn(row)) continue
                 // A row starting with a barcode is a new item, never the end of the last name.
@@ -208,7 +242,19 @@ class RowReceiptParser(private val parser: ReceiptParser = ReceiptParser()) {
                 if (attempt.addsUp) { best = attempt; break }
             }
         }
-        return Result(items, best.total, best.charges, best.extras)
+        // Priced add-ons ("Egg Noodle 2.00"): if the total only adds up with them,
+        // they were charged on top of the item line, so fold them into its price.
+        var finalItems: List<ReceiptItem> = items
+        val addOnSum = items.sumOf { i -> i.addOns.sumOf { it.price } }
+        val total = best.total
+        if (addOnSum > 0.0 && total != null) {
+            val without = abs(itemsSum + best.extras - total)
+            val with = abs(itemsSum + addOnSum + best.extras - total)
+            if (with + 0.005 < without) {
+                finalItems = items.map { i -> i.copy(price = round((i.price + i.addOns.sumOf { it.price }) * 100) / 100) }
+            }
+        }
+        return Result(finalItems, best.total, best.charges, best.extras)
     }
 
     private class Totals(val total: Double?, val charges: List<ReceiptCharge>, val extras: Double, val addsUp: Boolean)
@@ -329,6 +375,29 @@ class RowReceiptParser(private val parser: ReceiptParser = ReceiptParser()) {
             qty = m.groupValues[2].toInt(); t = m.groupValues[1]
         }
         return qty.coerceIn(1, 99) to t
+    }
+
+    /** ":Level 1   1" -> "Level 1", "• +Brwnie Crmb +" -> "Brwnie Crmb". */
+    private fun cleanAddOn(raw: String): String {
+        var n = raw.trim()
+        n = n.replace(Regex("^[:+•*·\\-~>\\s]+"), "")
+        n = n.replace(Regex("\\s{2,}\\d{1,2}$"), "")          // qty column "   1"
+        n = n.replace(Regex("[\\s+:]+$"), "")
+        n = AddOnMerger.withoutCode(n)                          // "AO5 Egg" -> "Egg"
+        return n.replace(Regex("\\s{2,}"), " ").trim()
+    }
+
+    private fun addAddOn(items: MutableList<ReceiptItem>, addOn: AddOn) {
+        val last = items.removeAt(items.lastIndex)
+        items.add(last.copy(addOns = last.addOns + addOn))
+    }
+
+    /** Joins a wrapped piece onto the last add-on: "Recommendati" + "on\"" -> "Recommendation\"". */
+    private fun extendLastAddOn(items: MutableList<ReceiptItem>, piece: String) {
+        val last = items.removeAt(items.lastIndex)
+        val prev = last.addOns.last()
+        val glue = if (piece.length <= 3 && piece.first().isLowerCase() && prev.name.lastOrNull()?.isLetter() == true) "" else " "
+        items.add(last.copy(addOns = last.addOns.dropLast(1) + prev.copy(name = prev.name + glue + piece)))
     }
 
     private fun cleanName(raw: String): String {

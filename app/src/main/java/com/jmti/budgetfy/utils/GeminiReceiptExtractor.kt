@@ -54,8 +54,12 @@ class GeminiReceiptExtractor(
         val unitPrice: Double?,
         /** Amount charged for the whole line (quantity × unit price, after line discount). */
         val lineTotal: Double,
-        val category: String?
+        val category: String?,
+        /** Options printed under the item ("Egg Noodle", "+ Brownie 0.60"). */
+        val addOns: List<AddOn> = emptyList()
     )
+
+    data class AddOn(val name: String, val price: Double)
 
     data class Charge(val type: String, val rate: Double?, val amount: Double, val inclusive: Boolean)
 
@@ -245,8 +249,16 @@ class GeminiReceiptExtractor(
         - One entry per purchased product line. Do NOT include subtotal, total, tax, service charge,
           rounding, cash tendered, change, payment method, card details, addresses, phone numbers,
           order numbers or thank-you lines.
-        - Modifiers with no price of their own (e.g. "Normal Ice", "Less Sugar", "Take Away") are not
-          items. If a modifier or add-on has its own price, list it as its own item.
+        - Add-ons, options and modifiers printed under an item (e.g. ":Egg Noodle", "Level 1",
+          "All Topping on side", "Normal Ice", "Less Sugar", "+ Brownie 0.60", "Feature: ...") are NOT
+          separate items. Put them in that item's addOns (name as printed, price or null when free or
+          0.00). Lines that wrap onto the next row belong to the same add-on name.
+        - A line starting with ":" or "+" (or indented under an item) is ALWAYS an add-on of the item
+          above it, EVEN WHEN IT HAS ITS OWN PRICE (e.g. ":AO5 Egg Noodle  1  2.00" under a noodle
+          dish is that dish's add-on, not a separate item). Leave out item codes like "AO5" from
+          add-on names.
+        - An item's lineTotal includes its add-ons: use the line total as printed; only if add-on
+          prices are printed separately and not already in it, add them.
         - lineTotal = the amount charged for that line (quantity x unit price, after any discount shown
           on that line). quantity defaults to 1. Prices are plain numbers without "RM".
         - Keep item names as printed, but fix obvious OCR spelling errors and use normal capitalisation.
@@ -279,9 +291,12 @@ class GeminiReceiptExtractor(
                 "quantity" to Schema.integer(),
                 "unitPrice" to Schema.double(null, true),
                 "lineTotal" to Schema.double(),
-                "category" to Schema.enumeration(categories)
+                "category" to Schema.enumeration(categories),
+                "addOns" to Schema.array(
+                    Schema.obj(mapOf("name" to Schema.string(), "price" to Schema.double(null, true)), listOf("price"))
+                )
             ),
-            listOf("unitPrice")
+            listOf("unitPrice", "addOns")
         )
         val chargeSchema = Schema.obj(
             mapOf(
@@ -409,7 +424,12 @@ class GeminiReceiptExtractor(
                 quantity = item.number("quantity")?.toInt()?.coerceAtLeast(1) ?: 1,
                 unitPrice = item.number("unitPrice"),
                 lineTotal = lineTotal,
-                category = item.string("category")
+                category = item.string("category"),
+                addOns = item.getAsJsonArray("addOns")?.mapNotNull { a ->
+                    val o = a.asJsonObject
+                    val n = o.string("name")?.trim().orEmpty()
+                    if (n.isEmpty()) null else AddOn(n, o.number("price")?.coerceAtLeast(0.0) ?: 0.0)
+                }.orEmpty()
             )
         }.orEmpty()
 

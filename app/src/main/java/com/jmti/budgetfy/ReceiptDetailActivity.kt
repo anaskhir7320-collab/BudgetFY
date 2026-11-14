@@ -99,9 +99,15 @@ class ReceiptDetailActivity : AppCompatActivity() {
         }
 
         itemAdapter = ReceiptItemAdapter(
+            // Add-ons added/removed or an item turned into an add-on: save the whole list.
+            onItemsReplaced = { newItems -> saveItems(newItems) },
             onItemChanged = { oldItem, newItem ->
                 val idx = receipt?.items?.indexOf(oldItem) ?: -1
-                if (idx >= 0) {
+                val onlyCategory = oldItem.copy(category = newItem.category, isManuallyCorrected = newItem.isManuallyCorrected) == newItem
+                if (idx >= 0 && !onlyCategory) {
+                    // Name, quantity or price edited: save the list so the total and budgets follow.
+                    saveItems(receipt!!.items.toMutableList().also { it[idx] = newItem })
+                } else if (idx >= 0) {
                     val r = receipt!!
                     CoroutineScope(Dispatchers.IO).launch {
                         firebaseRepo.updateItemCategory(r, idx, newItem.category)
@@ -126,6 +132,25 @@ class ReceiptDetailActivity : AppCompatActivity() {
 
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
         itemsRecyclerView.adapter = itemAdapter
+    }
+
+    /** The name shown in the Firebase "Summary" (the one set on the Profile). */
+    private fun ownerName(): String? =
+        getSharedPreferences("budgetfy_prefs", MODE_PRIVATE).getString("display_name", null)
+
+    /** Saves an edited item list; the receipt total and category budgets are updated too. */
+    private fun saveItems(newItems: List<com.jmti.budgetfy.models.ReceiptItem>) {
+        val r = receipt ?: return
+        CoroutineScope(Dispatchers.IO).launch {
+            val updated = firebaseRepo.updateReceiptItems(r, newItems, ownerName())
+            receipt = updated
+            withContext(Dispatchers.Main) {
+                itemAdapter.updateItems(updated.items)
+                totalTextView.text = "RM ${String.format("%.2f", updated.totalAmount)}"
+                bindCategories(updated)
+                bindTotals(updated)
+            }
+        }
     }
 
     private fun setupToolbar() {
@@ -278,7 +303,7 @@ class ReceiptDetailActivity : AppCompatActivity() {
     private fun renameReceipt(newName: String) {
         val r = receipt ?: return
         CoroutineScope(Dispatchers.IO).launch {
-            firebaseRepo.renameReceipt(r.id, newName)
+            firebaseRepo.renameReceipt(r, newName, ownerName())
             receipt = r.copy(storeName = newName)
             withContext(Dispatchers.Main) {
                 setStoreName(newName)

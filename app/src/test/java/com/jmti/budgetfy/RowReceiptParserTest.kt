@@ -249,6 +249,96 @@ class RowReceiptParserTest {
     }
 
     @Test
+    fun noodleAddOnsStayUnderTheirItem() {
+        val r = parser.parse(noodle)
+        assertEquals(2, r.items.size)
+        assertEquals("C1 Shredded Chicken & Chicken Ball Noodle (Soup)", r.items[0].name)
+        assertEquals(listOf("Egg Noodle", "Level 1", "All Topping on side"), r.items[0].addOns.map { it.name })
+        assertEquals(
+            listOf("Thai Flat Noodle \"Chef's Recommendation\"", "Level 2", "All Topping on side"),
+            r.items[1].addOns.map { it.name }
+        )
+        assertEquals(19.90, r.items[0].price, 0.001) // free add-ons don't change the price
+    }
+
+    @Test
+    fun pricedAddOnIsPartOfItemNotSeparate() {
+        val receipt = """
+            Item Name   Qty   Price(RM)
+            Chicken Rice   1   10.00
+            :Egg Noodle   1   2.00
+            :Less Spicy   1   0.00
+            Iced Tea   1   3.50
+            Total   15.50
+        """.trimIndent()
+        val r = parser.parse(receipt)
+        assertEquals(2, r.items.size) // Egg Noodle is not its own item
+        assertEquals(12.00, r.items[0].price, 0.001) // 10.00 + 2.00 add-on (total says so)
+        assertEquals(2.00, r.items[0].addOns.first { it.name == "Egg Noodle" }.price, 0.001)
+        assertEquals(15.50, r.total!!, 0.001)
+    }
+
+    @Test
+    fun zusAddOnAlreadyInLinePrice() {
+        val r = parser.parse(zus)
+        assertEquals("Brwnie Crmb", r.items[0].addOns.single().name)
+        assertEquals(7.50, r.items[0].price, 0.001) // not 8.10: 0.60 is already in 7.50
+    }
+
+    // Thai Cuisine receipt, OCR rows as read on the phone (14 Nov 2026).
+    private val thai = """
+        Item Name   Qty   Price(RM)
+        C5 Creamy Tom   19.90
+        Yum Marna Mee
+        with Squid, Prawn,
+        Chicken ball and
+        Mushroom
+        :AO5 Egg   1   2.00
+        Noodle
+        G3 Mega Signature   1   29.90
+        Milk Tea
+        CP03 Crispy   32.90
+        Chicken Noodle
+        Soup (15mins)
+        Egg Noodle   1   0.00
+        :Spicy   1   0.00
+        Total Amount   98.25
+        Total Discount   .00
+        Sub Total   98.24
+        Service Charge 10%   8.47
+        Tax Amnount   5.07
+        Rounding   .01
+        98.25
+    """.trimIndent()
+
+    @Test
+    fun thaiPricedAddOnOffline() {
+        val r = parser.parse(thai)
+        assertEquals(3, r.items.size) // ":AO5 Egg Noodle 2.00" is not its own item
+        assertEquals(21.90, r.items[0].price, 0.001) // 19.90 + 2.00
+        assertEquals("Egg Noodle", r.items[0].addOns.single().name)
+        assertEquals(listOf("Egg Noodle", "Spicy"), r.items[2].addOns.map { it.name })
+        assertEquals(98.25, r.total!!, 0.001)
+    }
+
+    @Test
+    fun geminiPricedAddOnMovedUnderItem() {
+        // What Gemini returned: the marked add-on as a 4th item.
+        val gemini = listOf(
+            com.jmti.budgetfy.models.ReceiptItem(name = "C5 Creamy Tom Yum Mama Mee with Squid, Prawn, Chicken ball and Mushroom", price = 19.90),
+            com.jmti.budgetfy.models.ReceiptItem(name = "AO5 Egg Noodle", price = 2.00),
+            com.jmti.budgetfy.models.ReceiptItem(name = "G3 Mega Signature Milk Tea", price = 29.90),
+            com.jmti.budgetfy.models.ReceiptItem(name = "CP03 Crispy Chicken Noodle Soup (15mins)", price = 32.90)
+        )
+        val fixed = com.jmti.budgetfy.utils.AddOnMerger.attachMarkedAddOns(gemini, thai)
+        assertEquals(3, fixed.size)
+        assertEquals(21.90, fixed[0].price, 0.001)
+        assertEquals("Egg Noodle", fixed[0].addOns.single().name)
+        assertEquals(2.00, fixed[0].addOns.single().price, 0.001)
+        assertEquals(84.70, fixed.sumOf { it.price }, 0.001) // total unchanged
+    }
+
+    @Test
     fun padiniBrandsOutlet() {
         val r = parser.parse(padini)
         assertEquals(2, r.items.size)

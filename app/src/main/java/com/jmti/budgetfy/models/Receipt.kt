@@ -1,11 +1,14 @@
 package com.jmti.budgetfy.models
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Exclude
 
 data class Receipt(
+    /** The Firestore document's own ID; filled in after reading, never stored as a field. */
+    @get:Exclude
     val id: String = "",
     val userId: String = "",
-    val imageUrl: String = "",
+    /** The photo's file on this phone (the cloud copy is receipt_images/{id}). */
     val imageUri: String = "",
     val totalAmount: Double = 0.0,
     val storeName: String = "",

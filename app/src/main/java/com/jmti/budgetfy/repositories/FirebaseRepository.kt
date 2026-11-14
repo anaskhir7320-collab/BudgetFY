@@ -268,11 +268,82 @@ class FirebaseRepository {
     // ==================== RECEIPTS ====================
 
     /**
+     * Human-readable fields on a receipt photo, so the receipt_images list in
+     * the Firebase console says whose receipt it is and from where/when.
+     * The app itself only reads "image", "userId" and "createdAt".
+     */
+    private fun photoLabels(receipt: Receipt, ownerName: String?, savedAtMs: Long): Map<String, Any> {
+        val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
+        return buildMap {
+            put("storeName", receipt.storeName)
+            put("totalAmount", receipt.totalAmount)
+            put("receiptDate", fmt.format(receipt.date.toDate()))
+            putAll(ownerLabels(ownerName, savedAtMs))
+        }
+    }
+
+    /** Who saved it and when, readable: "Kotohaaa", email, "2026-11-13 20:42". */
+    private fun ownerLabels(ownerName: String?, savedAtMs: Long): Map<String, Any> = buildMap {
+        put("savedAt", SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date(savedAtMs)))
+        ownerName?.takeIf { it.isNotBlank() }?.let { put("displayName", it) }
+        auth.currentUser?.email?.let { put("email", it) }
+    }
+
+    /**
+     * One-time tidy of receipts saved before: adds the readable labels and
+     * removes fields that were always empty ("id", "imageUrl", items' "id").
+     * @return how many were tidied, or -1 if any failed (tried again later).
+     */
+    suspend fun tidyOldReceipts(userId: String, ownerName: String?): Int {
+        var count = 0
+        var failed = false
+        for (r in getReceipts(userId)) {
+            try {
+                firestore.collection("receipts").document(r.id).update(
+                    ownerLabels(ownerName, r.createdAt) + mapOf(
+                        "id" to com.google.firebase.firestore.FieldValue.delete(),
+                        "imageUrl" to com.google.firebase.firestore.FieldValue.delete(),
+                        "items" to r.items // rewritten without the empty "id"
+                    )
+                ).await()
+                count++
+            } catch (e: Exception) {
+                failed = true
+                Log.e("FirebaseRepo", "tidyOldReceipts ${r.id}: ${e.message}")
+            }
+        }
+        return if (failed) -1 else count
+    }
+
+    /**
+     * Adds the readable fields to photos saved before they existed. Runs once
+     * per account (the caller remembers it); returns how many were labelled.
+     */
+    /** @return how many photos were labelled, or -1 if any failed (so it's tried again later). */
+    suspend fun labelOldReceiptImages(userId: String, ownerName: String?): Int {
+        var count = 0
+        var failed = false
+        for (r in getReceipts(userId).filter { it.cloudImage }) {
+            try {
+                firestore.collection(RECEIPT_IMAGES).document(r.id)
+                    .update(photoLabels(r, ownerName, r.createdAt)).await()
+                count++
+            } catch (e: Exception) {
+                failed = true
+                Log.e("FirebaseRepo", "labelOldReceiptImages ${r.id}: ${e.message}")
+            }
+        }
+        return if (failed) -1 else count
+    }
+
+    /**
      * Saves the receipt. When [imageJpeg] is given, the photo is stored in
      * Firestore too (receipt_images/{receiptId}) so it survives uninstalling
      * the app. If the photo upload fails, the receipt is still saved.
      */
-    suspend fun saveReceipt(userId: String, receipt: Receipt, imageJpeg: ByteArray? = null) {
+    suspend fun saveReceipt(
+        userId: String, receipt: Receipt, imageJpeg: ByteArray? = null, ownerName: String? = null
+    ) {
         val ref = firestore.collection("receipts").document()
         var toSave = receipt
         if (imageJpeg != null) {
@@ -284,7 +355,7 @@ class FirebaseRepository {
                             "userId" to userId,
                             "image" to Blob.fromBytes(imageJpeg),
                             "createdAt" to System.currentTimeMillis()
-                        )
+                        ) + photoLabels(receipt, ownerName, System.currentTimeMillis())
                     )
                 )
                 toSave = receipt.copy(cloudImage = true)
@@ -293,6 +364,8 @@ class FirebaseRepository {
             }
         }
         awaitBriefly(ref.set(toSave))
+        // Readable labels for the Firebase console (not part of the app's model).
+        awaitBriefly(ref.set(ownerLabels(ownerName, System.currentTimeMillis()), com.google.firebase.firestore.SetOptions.merge()))
         // One budget update per category, not per item.
         val share = receipt.chargeShare()
         receipt.items.groupBy { it.category }.forEach { (category, items) ->

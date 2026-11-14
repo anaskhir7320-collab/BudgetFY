@@ -660,7 +660,10 @@ class CaptureReceiptActivity : AppCompatActivity() {
                 // Receipt text stays readable at ~1600px.
                 val saveStarted = System.currentTimeMillis()
                 val jpeg = photo?.let { ImageCompress.toJpeg(it, maxSide = 1600, maxBytes = 700_000) }
-                firebaseRepo.saveReceipt(userId, receipt, jpeg)
+                // Shown on the photo in the Firebase console ("displayName").
+                val ownerName = getSharedPreferences("budgetfy_prefs", MODE_PRIVATE).getString("display_name", null)
+                    ?: firebaseRepo.getCurrentUser()?.displayName
+                firebaseRepo.saveReceipt(userId, receipt, jpeg, ownerName)
                 Log.d("CAPTURE", "Saved in ${System.currentTimeMillis() - saveStarted} ms")
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE

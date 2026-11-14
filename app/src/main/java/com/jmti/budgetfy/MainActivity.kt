@@ -304,6 +304,7 @@ class MainActivity : AppCompatActivity() {
 
         cleanupOldPhotosDaily(userId)
         restoreProfileOnce(userId)
+        labelOldPhotosOnce(userId)
 
         loadJob?.cancel()
         loadJob = CoroutineScope(Dispatchers.IO).launch {
@@ -363,6 +364,30 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             firebaseRepo.cleanupOldReceiptImages(userId, maxAgeDays = 90)
             prefs.edit().putLong("lastRun_$userId", now).apply()
+        }
+    }
+
+    /**
+     * One-time: adds store, total, dates and name to receipt photos saved
+     * before those readable fields existed (for the Firebase console).
+     */
+    private fun labelOldPhotosOnce(userId: String) {
+        val photosKey = "photos_labelled_$userId"
+        val receiptsKey = "receipts_tidied_$userId"
+        if (prefs.getBoolean(photosKey, false) && prefs.getBoolean(receiptsKey, false)) return
+        CoroutineScope(Dispatchers.IO).launch {
+            val name = prefs.getString("display_name", null) ?: firebaseRepo.getCurrentUser()?.displayName
+            // Only stop trying once it fully worked (e.g. not while a rule blocks it).
+            if (!prefs.getBoolean(photosKey, false)) {
+                val n = firebaseRepo.labelOldReceiptImages(userId, name)
+                Log.d("HOME", "Labelled $n old receipt photos")
+                if (n >= 0) prefs.edit().putBoolean(photosKey, true).apply()
+            }
+            if (!prefs.getBoolean(receiptsKey, false)) {
+                val n = firebaseRepo.tidyOldReceipts(userId, name)
+                Log.d("HOME", "Tidied $n old receipts")
+                if (n >= 0) prefs.edit().putBoolean(receiptsKey, true).apply()
+            }
         }
     }
 
